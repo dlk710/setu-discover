@@ -113,6 +113,11 @@ type ClientForm = {
 
 type SourceForm = {
   name: string;
+  organization: string;
+  source_category: string;
+  criteria_tags: string;
+  typical_fee: string;
+  registry_rank: string;
   canonical_domain: string;
   seed_url: string;
   credibility_tier: string;
@@ -239,6 +244,11 @@ function emptyClientForm(): ClientForm {
 function emptySourceForm(): SourceForm {
   return {
     name: "",
+    organization: "",
+    source_category: "",
+    criteria_tags: "",
+    typical_fee: "",
+    registry_rank: "",
     canonical_domain: "",
     seed_url: "",
     credibility_tier: "2",
@@ -251,6 +261,11 @@ function emptySourceForm(): SourceForm {
 function sourceToForm(source: Source): SourceForm {
   return {
     name: source.name,
+    organization: source.organization,
+    source_category: source.source_category,
+    criteria_tags: listText(source.criteria_tags),
+    typical_fee: source.typical_fee,
+    registry_rank: source.registry_rank ? String(source.registry_rank) : "",
     canonical_domain: source.canonical_domain,
     seed_url: source.seed_url,
     credibility_tier: String(source.credibility_tier),
@@ -1331,7 +1346,8 @@ function SourcesView({
           <div className="sheet">
             <div className="trow head source-grid">
               <span>Source</span>
-              <span>Domain</span>
+              <span>Category</span>
+              <span>Criteria / fee</span>
               <span>Seed page</span>
               <span>Tier</span>
               <span>Status</span>
@@ -1343,9 +1359,23 @@ function SourcesView({
                   <button className="name-button" type="button" onClick={() => onEdit(source)}>
                     {source.name}
                   </button>
+                  <div className="sub">
+                    {[source.organization, source.canonical_domain].filter(Boolean).join(" · ")}
+                  </div>
                   <div className="sub">{source.notes || "No notes"}</div>
                 </div>
-                <span className="mono">{source.canonical_domain}</span>
+                <div>
+                  <span className="pill ink">{source.source_category || "Uncategorized"}</span>
+                  {source.registry_rank ? <div className="sub">Registry #{source.registry_rank}</div> : null}
+                </div>
+                <div>
+                  <div className="tag-cloud">
+                    {source.criteria_tags.slice(0, 3).map((tag) => (
+                      <span className="pill" key={tag}>{tag}</span>
+                    ))}
+                  </div>
+                  <div className="sub">{source.typical_fee || "Fee unknown"}</div>
+                </div>
                 <div>
                   {source.seed_url ? (
                     <a className="inline-link" href={source.seed_url} target="_blank" rel="noreferrer">
@@ -1975,6 +2005,15 @@ function SourceModal({
         </div>
         <div className="modal-body">
           <FieldInput label="Name" value={form.name} onChange={(value) => update("name", value)} required />
+          <div className="field-row">
+            <FieldInput label="Organization" value={form.organization} onChange={(value) => update("organization", value)} />
+            <FieldInput label="Registry rank" value={form.registry_rank} onChange={(value) => update("registry_rank", value)} placeholder="1" />
+          </div>
+          <div className="field-row">
+            <FieldInput label="Registry category" value={form.source_category} onChange={(value) => update("source_category", value)} />
+            <FieldInput label="Typical fee" value={form.typical_fee} onChange={(value) => update("typical_fee", value)} />
+          </div>
+          <FieldInput label="EB-1A criteria tags" value={form.criteria_tags} onChange={(value) => update("criteria_tags", value)} placeholder="Awards, Judging" />
           <div className="field-row">
             <FieldInput label="Canonical domain" value={form.canonical_domain} onChange={(value) => update("canonical_domain", value)} required />
             <FieldSelect label="Credibility tier" value={form.credibility_tier} values={["1", "2", "3"]} onChange={(value) => update("credibility_tier", value)} />

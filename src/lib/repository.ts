@@ -24,9 +24,12 @@ function withDerivedStatus(row: EventRecord): EventRecord {
 
 export async function listSources() {
   return query<Source>(
-    `SELECT id, name, canonical_domain, seed_url, credibility_tier, status, refresh_enabled, notes
+    `SELECT
+       id, name, organization, source_category, criteria_tags, typical_fee,
+       registry_rank, canonical_domain, seed_url, credibility_tier, status,
+       refresh_enabled, notes
      FROM sources
-     ORDER BY credibility_tier ASC, name ASC`,
+     ORDER BY registry_rank NULLS LAST, credibility_tier ASC, name ASC`,
   );
 }
 
@@ -234,11 +237,18 @@ export async function upsertSource(payload: Record<string, unknown>, id?: string
   const sourceId = id ?? makeId("src");
   const rows = await query<Source>(
     `INSERT INTO sources (
-       id, name, canonical_domain, seed_url, credibility_tier, status, refresh_enabled, notes
+       id, name, organization, source_category, criteria_tags, typical_fee,
+       registry_rank, canonical_domain, seed_url, credibility_tier, status,
+       refresh_enabled, notes
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     VALUES ($1, $2, $3, $4, $5::text[], $6, $7, $8, $9, $10, $11, $12, $13)
      ON CONFLICT (id) DO UPDATE SET
        name = EXCLUDED.name,
+       organization = EXCLUDED.organization,
+       source_category = EXCLUDED.source_category,
+       criteria_tags = EXCLUDED.criteria_tags,
+       typical_fee = EXCLUDED.typical_fee,
+       registry_rank = EXCLUDED.registry_rank,
        canonical_domain = EXCLUDED.canonical_domain,
        seed_url = EXCLUDED.seed_url,
        credibility_tier = EXCLUDED.credibility_tier,
@@ -250,6 +260,13 @@ export async function upsertSource(payload: Record<string, unknown>, id?: string
     [
       sourceId,
       String(payload.name ?? "").trim(),
+      String(payload.organization ?? "").trim(),
+      String(payload.source_category ?? "").trim(),
+      toTextArray(payload.criteria_tags),
+      String(payload.typical_fee ?? "").trim(),
+      payload.registry_rank === null || payload.registry_rank === undefined || payload.registry_rank === ""
+        ? null
+        : Number(payload.registry_rank),
       String(payload.canonical_domain ?? "").trim().toLowerCase(),
       String(payload.seed_url ?? "").trim(),
       Number(payload.credibility_tier ?? 2),

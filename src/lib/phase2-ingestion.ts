@@ -46,6 +46,10 @@ export type GuardResult =
   | { allowed: true; reason: string }
   | { allowed: false; reason: string };
 
+export type OpportunityValidation =
+  | { valid: true; reason: string; opportunity: ExtractedOpportunity }
+  | { valid: false; reason: string; opportunity: ExtractedOpportunity };
+
 export const lowConfidenceThreshold = 0.74;
 
 export function sha256(value: string) {
@@ -75,6 +79,155 @@ function urlHost(value: string) {
 
 function isLocalFixture(url: URL) {
   return ["localhost", "127.0.0.1", "::1"].includes(url.hostname) && url.pathname.startsWith("/phase2-fixtures/");
+}
+
+function absoluteUrl(value: string, baseUrl: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  try {
+    return new URL(trimmed, baseUrl).toString();
+  } catch {
+    return "";
+  }
+}
+
+function isPublicHttpUrl(value: string) {
+  try {
+    const parsed = new URL(value);
+    return ["http:", "https:"].includes(parsed.protocol) && !isLocalFixture(parsed);
+  } catch {
+    return false;
+  }
+}
+
+function isOnCanonicalDomain(value: string, page: RegistryPage) {
+  const canonical = normalizeDomain(page.canonical_domain);
+  const host = urlHost(value);
+  return Boolean(host && canonical && (host === canonical || host.endsWith(`.${canonical}`)));
+}
+
+function hasClientActionSignal(opportunity: ExtractedOpportunity, page: RegistryPage) {
+  const text = [
+    opportunity.title,
+    opportunity.summary,
+    opportunity.applyUrl,
+    opportunity.sourceUrl,
+    opportunity.category,
+    page.url,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return /apply|application|submit|submission|submissions|nominate|nomination|call for|cfp|proposal|proposals|speaker|speakers|reviewer|reviewers|volunteer|pitch|contribute|author guidelines|become|join|membership|senior member|fellow|award|prize|participate|opportunit/.test(text);
+}
+
+async function reachableClientLink(url: string, page: RegistryPage) {
+  const headers = { "User-Agent": "SETU-DISCOVER-LinkVerifier/0.1" };
+
+  for (const method of ["HEAD", "GET"] as const) {
+    try {
+      const response = await fetch(url, {
+        method,
+        headers,
+        redirect: "follow",
+        signal: AbortSignal.timeout(7000),
+      });
+      const finalUrl = response.url || url;
+
+      if (!isOnCanonicalDomain(finalUrl, page)) {
+        return {
+          ok: false,
+          reason: `client link redirects outside ${page.canonical_domain}`,
+          finalUrl,
+        };
+      }
+
+      if (response.ok) {
+        return { ok: true, reason: "client link reached", finalUrl };
+      }
+
+      if (method === "HEAD" && [403, 405].includes(response.status)) {
+        continue;
+      }
+
+      return {
+        ok: false,
+        reason: `client link returned ${response.status}`,
+        finalUrl,
+      };
+    } catch (error) {
+      if (method === "GET") {
+        return {
+          ok: false,
+          reason: error instanceof Error ? error.message : "client link fetch failed",
+          finalUrl: url,
+        };
+      }
+    }
+  }
+
+  return { ok: false, reason: "client link fetch failed", finalUrl: url };
+}
+
+export async function validateClientOpportunity(
+  opportunity: ExtractedOpportunity,
+  page: RegistryPage,
+): Promise<OpportunityValidation> {
+  const sourceUrl = absoluteUrl(opportunity.sourceUrl || page.url, page.url);
+  const applyUrl = absoluteUrl(opportunity.applyUrl || opportunity.sourceUrl || page.url, page.url);
+  const normalized = {
+    ...opportunity,
+    applyUrl,
+    sourceUrl,
+    category: normalizeCategory(opportunity.category || page.source_name),
+  };
+
+  if (!normalized.title.trim()) {
+    return { valid: false, reason: "missing opportunity title", opportunity: normalized };
+  }
+
+  if (!normalized.summary.trim()) {
+    return { valid: false, reason: "missing opportunity summary", opportunity: normalized };
+  }
+
+  if (!isPublicHttpUrl(applyUrl)) {
+    return { valid: false, reason: "missing public client application link", opportunity: normalized };
+  }
+
+  if (!isPublicHttpUrl(sourceUrl)) {
+    return { valid: false, reason: "missing public source link", opportunity: normalized };
+  }
+
+  if (!isOnCanonicalDomain(applyUrl, page) || !isOnCanonicalDomain(sourceUrl, page)) {
+    return {
+      valid: false,
+      reason: `link is outside canonical source domain ${page.canonical_domain}`,
+      opportunity: normalized,
+    };
+  }
+
+  if (!hasClientActionSignal(normalized, page)) {
+    return {
+      valid: false,
+      reason: "missing client-facing apply, nominate, submit, pitch, reviewer, or membership signal",
+      opportunity: normalized,
+    };
+  }
+
+  const reachable = await reachableClientLink(applyUrl, page);
+  if (!reachable.ok) {
+    return { valid: false, reason: reachable.reason, opportunity: normalized };
+  }
+
+  return {
+    valid: true,
+    reason: reachable.reason,
+    opportunity: {
+      ...normalized,
+      applyUrl: reachable.finalUrl,
+    },
+  };
 }
 
 export async function guardedFetch(page: RegistryPage): Promise<{
@@ -177,11 +330,41 @@ function parseFee(value: string) {
   };
 }
 
+const categoryAliases: Record<string, string> = {
+  article: "Authorship",
+  articles: "Authorship",
+  authorship: "Authorship",
+  publication: "Authorship",
+  publications: "Authorship",
+  "published material": "Media & Interview",
+  press: "Media & Interview",
+  media: "Media & Interview",
+  interview: "Media & Interview",
+  interviews: "Media & Interview",
+  award: "Awards & Nominations",
+  awards: "Awards & Nominations",
+  nomination: "Awards & Nominations",
+  nominations: "Awards & Nominations",
+  membership: "Memberships & Fellowships",
+  memberships: "Memberships & Fellowships",
+  fellowship: "Memberships & Fellowships",
+  fellowships: "Memberships & Fellowships",
+  board: "Editorial / Board / Leadership",
+  editorial: "Editorial / Board / Leadership",
+  leadership: "Editorial / Board / Leadership",
+  exhibition: "Exhibitions & Showcases",
+  exhibitions: "Exhibitions & Showcases",
+  showcase: "Exhibitions & Showcases",
+  showcases: "Exhibitions & Showcases",
+};
+
 export function normalizeCategory(value: string) {
-  const category = EVENT_CATEGORIES.find(
-    (item) => item.toLowerCase() === value.trim().toLowerCase(),
-  );
-  return category ?? "Awards";
+  const normalized = value.trim().toLowerCase();
+  const alias = categoryAliases[normalized];
+  if (alias) return alias;
+
+  const category = EVENT_CATEGORIES.find((item) => item.toLowerCase() === normalized);
+  return category ?? "Authorship";
 }
 
 function normalizeDeadline(value: string) {
@@ -445,7 +628,41 @@ export async function runPhase2Ingestion(mode = "manual") {
         continue;
       }
 
-      for (const opportunity of opportunities) {
+      for (const extractedOpportunity of opportunities) {
+        const validation = await validateClientOpportunity(extractedOpportunity, page);
+        if (!validation.valid) {
+          lowConfidenceCount += 1;
+          await createIngestionItem({
+            runId: run.id,
+            sourceId: page.source_id,
+            pageUrl: page.url,
+            contentHash: hash,
+            changeStatus: "changed",
+            extractionStatus: "rejected",
+            confidence: validation.opportunity.confidence,
+            summary: `Not client-ready: ${validation.reason}`,
+            error: validation.reason,
+          });
+          await createReviewItem({
+            runId: run.id,
+            sourceId: page.source_id,
+            pageUrl: page.url,
+            title: validation.opportunity.title || page.source_name,
+            reason: `Client-link verification failed: ${validation.reason}`,
+            confidence: validation.opportunity.confidence,
+            payload: {
+              opportunity: validation.opportunity,
+              validation: {
+                reason: validation.reason,
+                sourceName: page.source_name,
+                canonicalDomain: page.canonical_domain,
+              },
+            },
+          });
+          continue;
+        }
+
+        const opportunity = validation.opportunity;
         const eventId = stableEventId(
           page.source_id,
           opportunity.title,

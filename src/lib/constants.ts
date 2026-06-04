@@ -1,12 +1,18 @@
 export const EVENT_CATEGORIES = [
+  "Authorship",
+  "Judging",
+  "Speaking",
+  "Awards & Nominations",
+  "Memberships & Fellowships",
+  "Editorial / Board / Leadership",
+  "Media & Interview",
+  "Exhibitions & Showcases",
+  "Grants",
   "Awards",
   "Press",
-  "Speaking",
-  "Judging",
   "Publications",
   "Memberships",
   "Exhibitions",
-  "Grants",
 ] as const;
 
 export const CRITERIA_TAGS = [

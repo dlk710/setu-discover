@@ -52,6 +52,8 @@ npm run phase2:schedule
 
 `OPENAI_API_KEY` is optional. When it is set, Phase 2 uses structured-output extraction; when it is absent, the local rule extractor handles the seeded review fixtures.
 
+The master EB-1A source list is normalized into `data/source-registry.json` from the provided workbook. `npm run db:setup` imports those 45 sources into PostgreSQL and archives the older local fixture opportunities. Refreshed records are not saved to active inventory unless they include a public, reachable client-facing source/apply link on the registry source domain.
+
 ## Phase 3 local deployment
 
 Phase 3 adds constrained LangGraph orchestration with a scout node, guarded fetch node, extractor, classifier, portal-backed review interrupt, persistence node, run traces, alerts, and dead letters.
@@ -62,7 +64,7 @@ Run one agentic discovery pass while the app is running:
 npm run phase3:run
 ```
 
-The local default is deterministic and uses the rule extractor first. Set `PHASE3_OPENAI_ESCALATION=true` to allow OpenAI escalation for low-confidence Phase 3 extractions.
+The local default uses the rule extractor first, then escalates to OpenAI when an API key is present and the local extractor finds no candidates. Phase 3 uses the same client-facing link verification before a discovered record can be persisted.
 
 ## Documentation
 

@@ -8,6 +8,11 @@ export type User = {
 export type Source = {
   id: string;
   name: string;
+  organization: string;
+  source_category: string;
+  criteria_tags: string[];
+  typical_fee: string;
+  registry_rank: number | null;
   canonical_domain: string;
   seed_url: string;
   credibility_tier: number;

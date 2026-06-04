@@ -29,10 +29,12 @@ Phase 1 gives the team a working local portal:
 Phase 2 adds deterministic source ingestion:
 
 - Admin-managed source registry with canonical domain, credibility tier, seed URL, status, refresh flag, and notes.
+- Workbook-backed EB-1A master registry with organization, registry category, criteria tags, typical fee, and source rank.
 - Source page monitor with fetched/changed timestamps.
-- Domain-guarded fetch against allowlisted canonical domains plus local review fixtures.
+- Domain-guarded fetch against allowlisted canonical domains.
 - Content hash change detection.
 - Structured opportunity extraction.
+- Client-link verification that requires a public, reachable source/apply URL on the registry source domain before an extracted record can become active inventory.
 - Run reports with pages checked, changed pages, upserts, expired purges, and review counts.
 - Low-confidence review queue.
 - Local scheduled run support.
@@ -45,8 +47,8 @@ Phase 3 adds constrained agentic discovery:
 - Scout node finds new in-domain opportunity pages from seed pages.
 - Guarded fetch node retries and dead-letters repeated failures.
 - Extractor node uses local rule extraction first.
-- Optional OpenAI escalation for low-confidence Phase 3 extraction when `PHASE3_OPENAI_ESCALATION=true`.
-- Classifier node applies category normalization, confidence threshold, and pay-to-play review routing.
+- OpenAI escalation when an API key is present and the local extractor finds no candidates; optional low-confidence escalation with `PHASE3_OPENAI_ESCALATION=true`.
+- Classifier node applies category normalization, client-link verification, confidence threshold, and pay-to-play review routing.
 - Review interrupt node writes uncertain records into the portal review queue.
 - Persist node writes approved/high-confidence records to `events` and refreshes matches.
 - Agent observability tab shows run history, graph traces, alerts, and dead letters.
@@ -75,9 +77,10 @@ Phase 3 adds constrained agentic discovery:
 2. Admin clicks Run Now or runs `npm run phase2:run`.
 3. System fetches active source pages.
 4. Unchanged content is skipped.
-5. Changed content is extracted and upserted.
-6. Low-confidence records go to Review.
-7. Expired events are archived and matches recompute.
+5. Changed content is extracted.
+6. Candidate records must include a reachable client-facing link before inventory upsert.
+7. Broad pages, missing links, blocked links, and low-confidence records go to Review or stay out of active inventory.
+8. Expired events are archived and matches recompute.
 
 ### Phase 3 Agent Run
 
@@ -103,10 +106,10 @@ Phase 3 adds constrained agentic discovery:
 - Local app starts on `http://localhost:3004`.
 - PostgreSQL is the persistence layer.
 - Inventory and client data persist across restarts.
-- Phase 2 run can complete from local fixtures.
-- Phase 3 run can discover at least one page beyond the seed registry.
+- Source registry setup imports the 45 workbook-backed EB-1A sources.
+- Phase 2 run can complete against the real source registry without saving broad source pages as active opportunities.
+- Phase 3 run can discover in-domain pages beyond the seed registry.
 - Phase 3 run creates graph traces.
 - Low-confidence Phase 3 records enter the review queue.
 - Review approval writes an opportunity into Inventory.
 - Lint and production build pass.
-

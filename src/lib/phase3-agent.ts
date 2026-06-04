@@ -11,6 +11,7 @@ import {
   ruleBasedExtract,
   sha256,
   stableEventId,
+  validateClientOpportunity,
   type ExtractedOpportunity,
   type RegistryPage,
 } from "@/lib/phase2-ingestion";
@@ -256,8 +257,9 @@ async function fetchNode(state: AgentStateType) {
 async function modelTieredExtract(html: string) {
   const local = ruleBasedExtract(html);
   const shouldEscalate =
-    process.env.PHASE3_OPENAI_ESCALATION === "true" &&
-    local.some((item) => item.confidence < lowConfidenceThreshold);
+    Boolean(process.env.OPENAI_API_KEY && !local.length) ||
+    (process.env.PHASE3_OPENAI_ESCALATION === "true" &&
+      local.some((item) => item.confidence < lowConfidenceThreshold));
 
   if (!shouldEscalate) return { opportunities: local, provider: "local-rule" };
 
@@ -313,27 +315,33 @@ async function extractNode(state: AgentStateType) {
 }
 
 async function classifyNode(state: AgentStateType) {
-  const reviewed = state.opportunities.map((item) => {
-    const opportunity = {
+  const reviewed: AgentOpportunity[] = [];
+
+  for (const item of state.opportunities) {
+    const prepared = {
       ...item.opportunity,
       category: normalizeCategory(item.opportunity.category),
       actionability: Math.max(1, Math.min(5, Number(item.opportunity.actionability || 3))),
       confidence: Number(item.opportunity.confidence || 0.3),
     };
+    const validation = await validateClientOpportunity(prepared, item.page);
+    const opportunity = validation.opportunity;
     const payToPlay = Number(opportunity.feeAmount ?? 0) > 0 && item.page.credibility_tier === 3;
     const lowConfidence = opportunity.confidence < lowConfidenceThreshold;
-    const reviewReason = lowConfidence
-      ? "Low extraction confidence"
-      : payToPlay
-        ? "Pay-to-play rule triggered"
-        : null;
+    const reviewReason = !validation.valid
+      ? `Client-link verification failed: ${validation.reason}`
+      : lowConfidence
+        ? "Low extraction confidence"
+        : payToPlay
+          ? "Pay-to-play rule triggered"
+          : null;
 
-    return {
+    reviewed.push({
       ...item,
       opportunity,
       review_reason: reviewReason,
-    };
-  });
+    });
+  }
 
   const approved = reviewed.filter((item) => !item.review_reason);
   const review = reviewed.filter((item) => item.review_reason);

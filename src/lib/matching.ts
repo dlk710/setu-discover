@@ -13,6 +13,37 @@ function overlap(left: string[], right: string[]) {
   return unique(left).filter((item) => rightSet.has(item));
 }
 
+function categoryKey(value: string) {
+  const normalized = clean(value);
+  const aliases: Record<string, string> = {
+    award: "awards",
+    awards: "awards",
+    "awards & nominations": "awards",
+    press: "media",
+    media: "media",
+    "media & interview": "media",
+    interview: "media",
+    publications: "authorship",
+    publication: "authorship",
+    authorship: "authorship",
+    memberships: "memberships",
+    membership: "memberships",
+    "memberships & fellowships": "memberships",
+    fellowship: "memberships",
+    fellowships: "memberships",
+    exhibitions: "exhibitions",
+    exhibition: "exhibitions",
+    "exhibitions & showcases": "exhibitions",
+    showcase: "exhibitions",
+    showcases: "exhibitions",
+    editorial: "leadership",
+    board: "leadership",
+    leadership: "leadership",
+    "editorial / board / leadership": "leadership",
+  };
+  return aliases[normalized] ?? normalized;
+}
+
 function hasLocationFit(clientLocation: string, eventLocation: string) {
   const client = clean(clientLocation);
   const event = clean(eventLocation);
@@ -57,7 +88,10 @@ export function scoreMatch(client: ClientRecord, event: EventRecord): MatchBreak
 
   const actionability = (event.actionability / 5) * 12;
   const location = hasLocationFit(client.location, event.location) * 8;
-  const categoryBoost = client.preferred_categories.includes(event.category) ? 4 : 0;
+  const eventCategory = categoryKey(event.category);
+  const categoryBoost = client.preferred_categories.some((category) => categoryKey(category) === eventCategory)
+    ? 4
+    : 0;
   const total = Math.min(100, criterionGap + credibility + keyword + actionability + location + categoryBoost);
 
   const flags = [];
