@@ -13,6 +13,9 @@ SETU - DISCOVER is an internal discovery workbench for finding profile-building 
 - Refresh opportunities from trusted sources.
 - Let an agent discover new pages within approved source domains.
 - Route uncertain results to a human before they become client-facing recommendations.
+- Preview what a client would see: criteria coverage, open gaps, and recommended next actions.
+- Export a structured SETU evidence packet for a client/opportunity pair.
+- Review proposed new sources before they enter the trusted registry.
 
 ## How The Phases Work
 
@@ -28,6 +31,10 @@ The system checks trusted source pages every day or on demand. It skips pages th
 
 The system adds a constrained discovery agent. The agent can look inside approved domains, find new relevant pages, extract opportunities, and send uncertain cases to a human review queue.
 
+### Phase 4
+
+The system adds the intelligence layer: hybrid semantic matching, client portal preview, curator proposals for source expansion, and SETU export packets. Humans still approve source additions and client communication.
+
 ## What Humans Still Control
 
 - Which sources are trusted.
@@ -35,10 +42,12 @@ The system adds a constrained discovery agent. The agent can look inside approve
 - Which opportunities are sent to clients.
 - Source credibility tiers and source status.
 - Final client communication.
+- Whether a curator proposal becomes a trusted source.
+- Whether a SETU export is used downstream in a petition workflow.
 
 ## What AI Does
 
-AI is optional and scoped. Phase 2 can use OpenAI structured extraction when changed source content needs parsing. Phase 3 runs local rule extraction first and can optionally escalate low-confidence records to OpenAI. AI does not control login, CRUD, deterministic matching, source allowlists, or email sending.
+AI is optional and scoped. Phase 2 can use OpenAI structured extraction when changed source content needs parsing. Phase 3 runs local rule extraction first and can optionally escalate low-confidence records to OpenAI. Phase 4 semantic matching is deterministic and local by default. AI does not control login, CRUD, source allowlists, source approval, review approval, SETU export usage, or email sending.
 
 ## Review Queue Meaning
 
@@ -50,4 +59,3 @@ The review queue is where the product asks a human to decide. Items appear when 
 - Password: `marga123`
 
 These credentials are for local review only.
-

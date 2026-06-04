@@ -1,0 +1,32 @@
+import { NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth";
+import { rankMatches } from "@/lib/matching";
+import { buildSetuExport } from "@/lib/phase4-intelligence";
+import { listClients, listEvents } from "@/lib/repository";
+
+export async function GET(request: Request) {
+  const { response } = await requireUser();
+  if (response) return response;
+
+  const url = new URL(request.url);
+  const clientId = url.searchParams.get("clientId");
+  const eventId = url.searchParams.get("eventId");
+  const [clients, events] = await Promise.all([listClients(), listEvents()]);
+  const client = clients.find((item) => item.id === clientId);
+  const event = events.find((item) => item.id === eventId);
+
+  if (!client || !event) {
+    return NextResponse.json({ error: "Client or opportunity not found" }, { status: 404 });
+  }
+
+  const match = rankMatches(client, events).find((item) => item.event.id === event.id);
+  if (!match) {
+    return NextResponse.json({ error: "Opportunity is not export-ready for this client" }, { status: 400 });
+  }
+
+  return NextResponse.json(buildSetuExport(client, event, match), {
+    headers: {
+      "Content-Disposition": `attachment; filename="setu-export-${client.id}-${event.id}.json"`,
+    },
+  });
+}

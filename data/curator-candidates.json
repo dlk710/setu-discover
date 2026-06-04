@@ -1,0 +1,122 @@
+[
+  {
+    "id": "cur_neurips",
+    "name": "NeurIPS Calls and Participation",
+    "organization": "NeurIPS",
+    "source_category": "Speaking",
+    "criteria_tags": ["Original Contributions", "Scholarly Articles", "Judging"],
+    "typical_fee": "Conference-specific",
+    "canonical_domain": "neurips.cc",
+    "seed_url": "https://neurips.cc/",
+    "credibility_tier": 1,
+    "notes": "Top machine-learning venue with papers, workshops, reviewer, and participation calls."
+  },
+  {
+    "id": "cur_icml",
+    "name": "ICML Calls and Reviewer Opportunities",
+    "organization": "ICML",
+    "source_category": "Speaking",
+    "criteria_tags": ["Original Contributions", "Scholarly Articles", "Judging"],
+    "typical_fee": "Conference-specific",
+    "canonical_domain": "icml.cc",
+    "seed_url": "https://icml.cc/",
+    "credibility_tier": 1,
+    "notes": "Premier ML venue with paper submissions, reviewer roles, and workshops."
+  },
+  {
+    "id": "cur_aaai",
+    "name": "AAAI Conference Calls",
+    "organization": "AAAI",
+    "source_category": "Speaking",
+    "criteria_tags": ["Original Contributions", "Scholarly Articles", "Judging"],
+    "typical_fee": "Conference-specific",
+    "canonical_domain": "aaai.org",
+    "seed_url": "https://aaai.org/aaai-conference/",
+    "credibility_tier": 1,
+    "notes": "AI conference calls for papers, workshops, tutorials, and program participation."
+  },
+  {
+    "id": "cur_fast_company_design",
+    "name": "Innovation by Design Awards",
+    "organization": "Fast Company",
+    "source_category": "Awards & Nominations",
+    "criteria_tags": ["Awards", "Exhibitions/Showcases"],
+    "typical_fee": "Paid entry",
+    "canonical_domain": "fastcompany.com",
+    "seed_url": "https://www.fastcompany.com/innovation-by-design",
+    "credibility_tier": 2,
+    "notes": "Juried design and innovation recognition useful for product, design, and startup profiles."
+  },
+  {
+    "id": "cur_webby",
+    "name": "The Webby Awards",
+    "organization": "The Webby Awards",
+    "source_category": "Awards & Nominations",
+    "criteria_tags": ["Awards", "Exhibitions/Showcases"],
+    "typical_fee": "Paid entry",
+    "canonical_domain": "webbyawards.com",
+    "seed_url": "https://www.webbyawards.com/",
+    "credibility_tier": 2,
+    "notes": "Recognized digital work awards across product, media, design, and technology categories."
+  },
+  {
+    "id": "cur_sxsw_innovation",
+    "name": "SXSW Innovation Awards",
+    "organization": "SXSW",
+    "source_category": "Awards & Nominations",
+    "criteria_tags": ["Awards", "Exhibitions/Showcases"],
+    "typical_fee": "Paid entry",
+    "canonical_domain": "sxsw.com",
+    "seed_url": "https://www.sxsw.com/awards/innovation-awards/",
+    "credibility_tier": 2,
+    "notes": "Innovation awards and showcase path for technology builders and founders."
+  },
+  {
+    "id": "cur_cncf_ambassadors",
+    "name": "CNCF Ambassadors",
+    "organization": "Cloud Native Computing Foundation",
+    "source_category": "Editorial / Board / Leadership",
+    "criteria_tags": ["Leading/Critical Role", "Original Contributions"],
+    "typical_fee": "Free",
+    "canonical_domain": "cncf.io",
+    "seed_url": "https://www.cncf.io/people/ambassadors/",
+    "credibility_tier": 2,
+    "notes": "Community leadership recognition for cloud-native contributors and speakers."
+  },
+  {
+    "id": "cur_google_developer_experts",
+    "name": "Google Developer Experts",
+    "organization": "Google Developers",
+    "source_category": "Memberships & Fellowships",
+    "criteria_tags": ["Memberships", "Leading/Critical Role", "Original Contributions"],
+    "typical_fee": "Free",
+    "canonical_domain": "developers.google.com",
+    "seed_url": "https://developers.google.com/community/experts",
+    "credibility_tier": 2,
+    "notes": "Expert recognition program for developer leadership, speaking, and community contribution."
+  },
+  {
+    "id": "cur_dzone_contribute",
+    "name": "DZone Contribute",
+    "organization": "DZone",
+    "source_category": "Authorship",
+    "criteria_tags": ["Scholarly Articles", "Published Material"],
+    "typical_fee": "Free",
+    "canonical_domain": "dzone.com",
+    "seed_url": "https://dzone.com/pages/contribute",
+    "credibility_tier": 2,
+    "notes": "Practitioner article contribution path for software and infrastructure experts."
+  },
+  {
+    "id": "cur_infoq_contribute",
+    "name": "InfoQ Contribute",
+    "organization": "InfoQ",
+    "source_category": "Authorship",
+    "criteria_tags": ["Scholarly Articles", "Published Material"],
+    "typical_fee": "Free",
+    "canonical_domain": "infoq.com",
+    "seed_url": "https://www.infoq.com/contribute/",
+    "credibility_tier": 2,
+    "notes": "Software architecture and engineering article contribution path."
+  }
+]

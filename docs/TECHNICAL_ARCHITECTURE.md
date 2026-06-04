@@ -9,6 +9,7 @@
 - LangGraph JS for Phase 3 orchestration
 - Nodemailer for SMTP email
 - OpenAI Responses API optional for structured extraction
+- Local deterministic semantic scoring for Phase 4 hybrid matching
 - Docker Compose for local app/database hosting
 
 ## Local Services
@@ -37,6 +38,8 @@ Core tables:
 - `source_pages`
 - `denylisted_domains`
 - `events`
+  - System-of-record opportunity inventory.
+  - `created_at` is surfaced as the Inventory added date.
 - `clients`
 - `recommendations`
 - `applications`
@@ -118,6 +121,55 @@ Local script:
 npm run phase3:run
 ```
 
+## Phase 4 Intelligence
+
+Main module:
+
+```text
+src/lib/phase4-intelligence.ts
+```
+
+Supporting data:
+
+```text
+data/curator-candidates.json
+```
+
+Primary functions:
+
+- `buildClientPortalSummary()`
+- `buildCuratorProposals()`
+- `buildSetuExport()`
+
+Routes:
+
+```text
+GET /api/phase4?clientId=<client-id>
+GET /api/exports/setu?clientId=<client-id>&eventId=<event-id>
+```
+
+The Phase 4 route returns client portal preview data, curator proposals, and capability labels. The SETU export route returns a JSON evidence packet for a valid client/opportunity pair.
+
+## Hybrid Matching
+
+Main module:
+
+```text
+src/lib/matching.ts
+```
+
+The score combines:
+
+- criteria gap fit
+- credibility tier
+- exact keyword fit
+- semantic text similarity
+- actionability
+- location fit
+- preferred category boost
+
+Semantic similarity is local and deterministic. It uses normalized text terms plus a small domain alias map so it can run without Qdrant or an external embedding service. The implementation is intentionally swappable: a future Qdrant-backed vector score can replace the local semantic component while keeping the `MatchBreakdown.semantic` contract.
+
 ## Human Review Rejoin Flow
 
 Review endpoint:
@@ -131,6 +183,18 @@ Supported statuses:
 - `approved`: upserts Phase 3 payload into `events`.
 - `rejected`: closes item and archives linked event if one exists.
 - `open`: reopens item.
+
+## SETU Export Shape
+
+The export packet contains:
+
+- `client`
+- `opportunity`
+- `kazarian_mapping`
+- `ranking_evidence`
+- `operating_next_steps`
+
+The packet is not a petition filing. It is a structured bridge from discovery operations into downstream SETU petition evidence workflows after the client completes an opportunity.
 
 ## Environment Variables
 

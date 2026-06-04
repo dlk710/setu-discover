@@ -8,7 +8,7 @@ SETU - DISCOVER helps the SETU team find, qualify, match, review, and send profi
 
 - Admin: manages source registry, inventory, clients, ingestion, agent runs, review queue, and outbound emails.
 - Team member: reviews opportunities, matches clients, composes email outreach, and monitors runs.
-- Client: not yet a portal user in Phase 3; clients receive team-curated opportunities by email.
+- Client: not yet a separate public login user; Phase 4 includes an internal client portal preview that shows what a client-facing experience would display.
 
 ## Phase Coverage
 
@@ -18,6 +18,7 @@ Phase 1 gives the team a working local portal:
 
 - Login for admin/team users.
 - Inventory CRUD for opportunities.
+- Inventory list visibility for the date an opportunity was added.
 - Client profile CRUD.
 - Deterministic status from deadline and archive state.
 - Transparent matching score by criteria gap, credibility, keyword fit, actionability, and location.
@@ -53,23 +54,57 @@ Phase 3 adds constrained agentic discovery:
 - Persist node writes approved/high-confidence records to `events` and refreshes matches.
 - Agent observability tab shows run history, graph traces, alerts, and dead letters.
 
+### Phase 4: Intelligence And Scale
+
+Phase 4 closes the operating loop:
+
+- Hybrid matching adds deterministic semantic text similarity to the existing transparent heuristic score.
+- Phase 4 workspace shows a client portal preview with criteria coverage, open gaps, ranked recommendations, and next best action.
+- Curator proposals suggest new canonical sources based on client demand, criteria gaps, source coverage, and credibility tier.
+- Admins can add a curator proposal into the source registry for refresh and monitoring.
+- SETU export endpoint creates an evidence packet JSON for a selected client and opportunity.
+- DB setup creates vetted standing opportunities from direct-action EB-1A registry rows and keeps demo fixtures archived.
+
 ## Key Workflows
 
 ### Manual Opportunity Entry
 
 1. Admin opens Inventory.
-2. Admin creates or edits an opportunity.
-3. Required data includes title, category, credibility, summary, and actionability.
-4. Optional data includes fee, source/apply links, criteria tags, keywords, field, and location.
-5. Saved opportunity becomes eligible for matching.
+2. Admin scans title, category, fee, credibility, status, added date, deadline, source, and actions.
+3. Admin creates or edits an opportunity.
+4. Required data includes title, category, credibility, summary, and actionability.
+5. Optional data includes fee, source/apply links, criteria tags, keywords, field, and location.
+6. Saved opportunity becomes eligible for matching.
 
 ### Client Matching
 
 1. Admin opens Match.
 2. Admin selects a client.
-3. System ranks active opportunities using deterministic scoring.
+3. System ranks active opportunities using hybrid deterministic scoring.
 4. Admin reviews score evidence and sends email.
 5. Email is logged whether SMTP sends it or local fallback simulates it.
+
+### Phase 4 Client Portal Preview
+
+1. Admin opens Phase 4.
+2. Admin selects a client.
+3. System shows the client's covered criteria and open criteria gaps.
+4. System shows ranked client-ready recommendations.
+5. Admin can open a SETU evidence export JSON for any export-ready recommendation.
+
+### Phase 4 Curator Proposal
+
+1. Admin opens Phase 4.
+2. System scores source proposals from the candidate bank.
+3. Proposal reasons show client demand, criteria gaps, category supply gaps, and tier.
+4. Admin clicks Add source.
+5. Proposal becomes an active source registry record and source page for future refreshes.
+
+### SETU Evidence Export
+
+1. Admin selects a client-ready opportunity.
+2. System generates a JSON packet with client profile, opportunity source/apply links, criteria tags, ranking evidence, and operating next steps.
+3. SETU petition workflows can consume the packet as a structured starting point after the client completes the opportunity.
 
 ### Phase 2 Ingestion
 
@@ -106,10 +141,16 @@ Phase 3 adds constrained agentic discovery:
 - Local app starts on `http://localhost:3004`.
 - PostgreSQL is the persistence layer.
 - Inventory and client data persist across restarts.
+- Inventory list shows added date for each opportunity.
 - Source registry setup imports the 45 workbook-backed EB-1A sources.
 - Phase 2 run can complete against the real source registry without saving broad source pages as active opportunities.
 - Phase 3 run can discover in-domain pages beyond the seed registry.
 - Phase 3 run creates graph traces.
 - Low-confidence Phase 3 records enter the review queue.
 - Review approval writes an opportunity into Inventory.
+- Phase 4 hybrid match score includes semantic fit.
+- Phase 4 client portal preview renders coverage, gaps, top recommendations, and export status.
+- SETU export endpoint returns an evidence packet JSON for valid client/opportunity pairs.
+- Curator proposals can be added into the source registry.
+- Setup imports 20 vetted standing opportunities and keeps old fixture records inactive.
 - Lint and production build pass.

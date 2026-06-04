@@ -13,6 +13,70 @@ function overlap(left: string[], right: string[]) {
   return unique(left).filter((item) => rightSet.has(item));
 }
 
+const semanticAliases: Record<string, string[]> = {
+  ai: ["artificial", "intelligence", "machine", "learning", "data"],
+  artificial: ["ai", "machine", "learning"],
+  intelligence: ["ai", "machine", "learning"],
+  cloud: ["platform", "infrastructure", "reliability", "systems"],
+  infrastructure: ["cloud", "platform", "systems", "reliability"],
+  awards: ["recognition", "nomination", "prize", "honor"],
+  judging: ["review", "reviewer", "panel", "peer"],
+  authorship: ["article", "publication", "writing", "contribute", "pitch"],
+  media: ["press", "published", "interview", "opinion"],
+  speaking: ["speaker", "conference", "cfp", "proposal", "talk"],
+  membership: ["fellow", "senior", "member", "society"],
+  leadership: ["board", "editorial", "working", "group", "standards"],
+};
+
+function tokenize(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 2);
+}
+
+function semanticTerms(values: string[]) {
+  const terms = new Set<string>();
+  for (const token of tokenize(values.join(" "))) {
+    terms.add(token);
+    for (const alias of semanticAliases[token] ?? []) {
+      terms.add(alias);
+    }
+  }
+  return terms;
+}
+
+function semanticSimilarity(client: ClientRecord, event: EventRecord) {
+  const clientTerms = semanticTerms([
+    client.field,
+    client.location,
+    client.notes,
+    ...client.target_criteria,
+    ...client.keywords,
+    ...client.preferred_categories,
+  ]);
+  const eventTerms = semanticTerms([
+    event.title,
+    event.category,
+    event.field,
+    event.location,
+    event.summary,
+    event.notes,
+    ...event.criteria_tags,
+    ...event.keywords,
+  ]);
+
+  if (!clientTerms.size || !eventTerms.size) return 0.35;
+  let intersection = 0;
+  for (const term of clientTerms) {
+    if (eventTerms.has(term)) intersection += 1;
+  }
+  const union = new Set([...clientTerms, ...eventTerms]).size;
+  return union ? intersection / union : 0;
+}
+
 function categoryKey(value: string) {
   const normalized = clean(value);
   const aliases: Record<string, string> = {
@@ -84,7 +148,8 @@ export function scoreMatch(client: ClientRecord, event: EventRecord): MatchBreak
   const matchedKeywords = clientTerms.filter((term) =>
     eventTerms.some((eventTerm) => eventTerm.includes(term) || term.includes(eventTerm)),
   );
-  const keyword = clientTerms.length ? Math.min(18, (matchedKeywords.length / clientTerms.length) * 28) : 5;
+  const keyword = clientTerms.length ? Math.min(14, (matchedKeywords.length / clientTerms.length) * 22) : 4;
+  const semantic = semanticSimilarity(client, event) * 14;
 
   const actionability = (event.actionability / 5) * 12;
   const location = hasLocationFit(client.location, event.location) * 8;
@@ -92,7 +157,7 @@ export function scoreMatch(client: ClientRecord, event: EventRecord): MatchBreak
   const categoryBoost = client.preferred_categories.some((category) => categoryKey(category) === eventCategory)
     ? 4
     : 0;
-  const total = Math.min(100, criterionGap + credibility + keyword + actionability + location + categoryBoost);
+  const total = Math.min(100, criterionGap + credibility + keyword + semantic + actionability + location + categoryBoost);
 
   const flags = [];
   if (event.derived_status === "Closing") flags.push("deadline closing");
@@ -106,6 +171,7 @@ export function scoreMatch(client: ClientRecord, event: EventRecord): MatchBreak
     criterionGap: Number(criterionGap.toFixed(1)),
     credibility: Number(credibility.toFixed(1)),
     keyword: Number(keyword.toFixed(1)),
+    semantic: Number(semantic.toFixed(1)),
     actionability: Number(actionability.toFixed(1)),
     location: Number((location + categoryBoost).toFixed(1)),
     total: Number(total.toFixed(1)),

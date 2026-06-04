@@ -48,6 +48,31 @@ const retiredFixtureEventIds = [
   "evt_speaking_summit",
 ];
 
+const standingOpportunityRanks = new Set([
+  1, 5, 9, 10, 15, 16, 18, 19, 20, 21, 26, 27, 28, 34, 38, 40, 41, 43, 44, 45,
+]);
+
+function eventIdForStandingSource(source) {
+  return `evt_standing_${source.id.replace(/^src_/, "")}`;
+}
+
+function actionabilityForSource(source) {
+  const text = `${source.name} ${source.seed_url} ${source.notes}`.toLowerCase();
+  if (/apply|submit|submission|nominate|nomination|volunteer|pitch|contribute/.test(text)) {
+    return 5;
+  }
+  return 4;
+}
+
+function keywordsForSource(source) {
+  return [
+    source.organization,
+    source.source_category,
+    ...source.criteria_tags,
+    ...source.name.split(/[^A-Za-z0-9]+/).filter((item) => item.length > 2),
+  ].filter(Boolean);
+}
+
 const seedClients = [
   {
     id: "cli_anika",
@@ -196,6 +221,55 @@ async function main() {
 
   await pool.query("DELETE FROM source_pages WHERE source_id <> ALL($1::text[])", [registryIds]);
   await pool.query("DELETE FROM sources WHERE id <> ALL($1::text[])", [registryIds]);
+
+  for (const source of sourceRegistry.filter((item) => standingOpportunityRanks.has(item.registry_rank))) {
+    await pool.query(
+      `INSERT INTO events (
+         id, title, category, fee_amount, fee_purpose, credibility_tier, deadline,
+         criteria_tags, keywords, field, location, apply_url, source_url, source_id,
+         summary, actionability, manual_status, notes, archived
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, NULL, $7::text[], $8::text[], $9, $10, $11, $12, $13, $14, $15, 'active', $16, FALSE)
+       ON CONFLICT (id) DO UPDATE SET
+         title = EXCLUDED.title,
+         category = EXCLUDED.category,
+         fee_amount = EXCLUDED.fee_amount,
+         fee_purpose = EXCLUDED.fee_purpose,
+         credibility_tier = EXCLUDED.credibility_tier,
+         deadline = EXCLUDED.deadline,
+         criteria_tags = EXCLUDED.criteria_tags,
+         keywords = EXCLUDED.keywords,
+         field = EXCLUDED.field,
+         location = EXCLUDED.location,
+         apply_url = EXCLUDED.apply_url,
+         source_url = EXCLUDED.source_url,
+         source_id = EXCLUDED.source_id,
+         summary = EXCLUDED.summary,
+         actionability = EXCLUDED.actionability,
+         manual_status = 'active',
+         notes = EXCLUDED.notes,
+         archived = FALSE,
+         updated_at = now()`,
+      [
+        eventIdForStandingSource(source),
+        source.name,
+        source.source_category,
+        /^free$/i.test(source.typical_fee) ? 0 : null,
+        source.typical_fee,
+        source.credibility_tier,
+        source.criteria_tags,
+        keywordsForSource(source),
+        source.source_category,
+        "Remote / source-specific",
+        source.seed_url,
+        source.seed_url,
+        source.id,
+        `${source.organization} standing profile-building path. ${source.notes}`,
+        actionabilityForSource(source),
+        "Verified standing opportunity from the EB-1A master source registry. Confirm current eligibility and cycle timing before client submission.",
+      ],
+    );
+  }
 
   for (const client of seedClients) {
     await pool.query(

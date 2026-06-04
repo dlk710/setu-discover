@@ -15,6 +15,7 @@
 - Repeated Phase 3 fetch failures are written to dead letters.
 - Sources that return zero candidates create alerts for likely layout changes.
 - Agent runs store checkpoints and graph step traces for diagnosis.
+- Phase 4 SETU exports are generated on demand from current database state, avoiding stale packet storage.
 
 ## Safety and Guardrails
 
@@ -23,6 +24,8 @@
 - Denylisted domains are blocked.
 - Pay-to-play concerns are routed to human review when fees and low credibility tiers indicate risk.
 - Low-confidence extractions are not silently accepted by the Phase 3 agent.
+- Curator proposals do not enter the trusted source registry until an admin adds them.
+- SETU export is a structured evidence packet, not an automatic petition filing.
 
 ## Security
 
@@ -37,6 +40,7 @@
 - Phase 2 avoids repeated LLM/model work on unchanged pages.
 - Phase 3 runs local rule extraction first.
 - OpenAI escalation is opt-in for Phase 3 via `PHASE3_OPENAI_ESCALATION=true`.
+- Phase 4 semantic scoring is local and deterministic by default.
 - Match recomputation is scoped to top ranked opportunities per client.
 - Current scale target is local/team usage with curated source registry size.
 
@@ -46,11 +50,13 @@
 - Phase 3 exposes agent run history, graph traces, alerts, and dead letters.
 - Each Phase 3 graph node records a trace row with output and decision metadata.
 - Review queue count is visible in navigation.
+- Phase 4 exposes proposal reasons, match score breakdowns, and export readiness.
 
 ## Maintainability
 
 - The `events` table remains the system-of-record spine.
 - Phase 2 and Phase 3 reuse the same guarded fetch and extraction primitives.
+- Phase 4 keeps semantic score in the match breakdown contract so future Qdrant embeddings can replace the local scorer without changing UI surfaces.
 - UI components follow the existing SETU Finance visual language.
 - Tables are responsive and verified for no horizontal overflow on mobile and desktop.
 
@@ -60,4 +66,3 @@
 - It does not store OpenAI responses separately beyond extracted opportunity payloads and review payloads.
 - Operators should treat client profile data as sensitive.
 - Any hosted deployment should add managed secrets, backups, TLS, and stricter auth before production use.
-

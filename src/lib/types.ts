@@ -199,6 +199,7 @@ export type MatchBreakdown = {
   criterionGap: number;
   credibility: number;
   keyword: number;
+  semantic: number;
   actionability: number;
   location: number;
   total: number;

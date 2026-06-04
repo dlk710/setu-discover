@@ -1,6 +1,6 @@
 # SETU - DISCOVER
 
-Local SETU profile-discovery portal for operating opportunity inventory, client profiles, canonical source ingestion, agentic discovery, transparent matching, and email-out logging.
+Local SETU profile-discovery portal for operating opportunity inventory, client profiles, canonical source ingestion, agentic discovery, hybrid matching, client portal preview, SETU export, and email-out logging.
 
 ## Run locally with Docker
 
@@ -66,9 +66,22 @@ npm run phase3:run
 
 The local default uses the rule extractor first, then escalates to OpenAI when an API key is present and the local extractor finds no candidates. Phase 3 uses the same client-facing link verification before a discovered record can be persisted.
 
+## Phase 4 product finish
+
+Phase 4 adds the intelligence and scale layer:
+
+- Hybrid heuristic plus semantic matching.
+- Client portal preview for criteria coverage and ranked recommendations.
+- Curator proposals for new source registry additions.
+- SETU evidence export JSON for client/opportunity packets.
+- Vetted standing opportunities from the EB-1A master registry so active inventory contains real client-action paths, not fake fixtures.
+- Inventory added-date visibility so the team can scan when each opportunity entered the active record set.
+
 ## Documentation
 
+- [Product capabilities](docs/PRODUCT_CAPABILITIES.md)
 - [Functional specification](docs/FUNCTIONAL_SPEC.md)
 - [Nonfunctional requirements](docs/NON_FUNCTIONAL_REQUIREMENTS.md)
 - [Nontechnical overview](docs/NON_TECHNICAL_OVERVIEW.md)
 - [Technical architecture](docs/TECHNICAL_ARCHITECTURE.md)
+- Product slide deck: `docs/SETU_DISCOVER_Product_Deck.pptx`
