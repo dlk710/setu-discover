@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: marga
+      POSTGRES_PASSWORD: marga
+      POSTGRES_DB: marga
+    ports:
+      - "5435:5432"
+    volumes:
+      - marga_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marga -d marga"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://marga:marga@db:5432/marga
+      SESSION_SECRET: local-review-secret
+      SETU_DISCOVER_URL: http://localhost:3004
+      PHASE2_RUN_TOKEN: ${PHASE2_RUN_TOKEN:-local-phase-run-token}
+      PHASE2_SCHEDULE_TIME: ${PHASE2_SCHEDULE_TIME:-06:00}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_EXTRACTION_MODEL: ${OPENAI_EXTRACTION_MODEL:-gpt-4o-mini}
+      PHASE3_OPENAI_ESCALATION: ${PHASE3_OPENAI_ESCALATION:-false}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-team@marga.local}
+    ports:
+      - "3004:3004"
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  marga_pg:

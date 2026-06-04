@@ -1,0 +1,38 @@
+{
+  "name": "setu-discover",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3004",
+    "build": "next build",
+    "start": "next start --port 3004",
+    "lint": "eslint",
+    "db:setup": "node scripts/setup-db.mjs",
+    "phase2:run": "node scripts/run-phase2-local.mjs manual",
+    "phase2:schedule": "node scripts/phase2-scheduler.mjs",
+    "phase3:run": "node scripts/run-phase3-local.mjs agentic"
+  },
+  "dependencies": {
+    "@langchain/langgraph": "^1.3.4",
+    "lucide-react": "^1.14.0",
+    "next": "16.2.6",
+    "nodemailer": "^7.0.11",
+    "pg": "^8.16.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^20.19.29",
+    "@types/nodemailer": "^7.0.4",
+    "@types/pg": "^8.15.6",
+    "@types/react": "^19.2.9",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "16.2.6",
+    "playwright": "^1.60.0",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
+  }
+}
