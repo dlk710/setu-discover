@@ -12,7 +12,6 @@ import {
   Edit3,
   FileText,
   Globe,
-  Inbox,
   ListChecks,
   LinkIcon,
   LogOut,
@@ -340,16 +339,6 @@ export function SetuDiscoverPortal() {
     };
   }, [selectedClientId, state?.events.length, state?.clients.length]);
 
-  const metrics = useMemo(() => {
-    const events = state?.events ?? [];
-    return {
-      active: events.filter((event) => event.derived_status === "Active").length,
-      closing: events.filter((event) => event.derived_status === "Closing").length,
-      rolling: events.filter((event) => event.derived_status === "Rolling").length,
-      clients: state?.clients.length ?? 0,
-    };
-  }, [state]);
-
   const filteredEvents = useMemo(() => {
     const query = inventorySearch.toLowerCase();
     return (state?.events ?? []).filter((event) =>
@@ -473,12 +462,16 @@ export function SetuDiscoverPortal() {
         <div className="content">
           {activeTab === "dashboard" ? (
             <DashboardView
-              metrics={metrics}
               events={state.events}
-              matches={matches}
-              selectedClient={selectedClient}
+              clients={state.clients}
+              sources={state.sources}
+              categories={state.eventCategories}
+              agentRuns={state.agentRuns}
+              ingestionRuns={state.ingestionRuns}
+              reviewItems={state.reviewItems}
               onGoInventory={() => setActiveTab("inventory")}
-              onGoMatch={() => setActiveTab("matches")}
+              onGoClients={() => setActiveTab("clients")}
+              onGoReview={() => setActiveTab("review")}
             />
           ) : null}
 
@@ -727,99 +720,217 @@ function LoginShell({
 }
 
 function DashboardView({
-  metrics,
   events,
-  matches,
-  selectedClient,
+  clients,
+  sources,
+  categories,
+  agentRuns,
+  ingestionRuns,
+  reviewItems,
   onGoInventory,
-  onGoMatch,
+  onGoClients,
+  onGoReview,
 }: {
-  metrics: { active: number; closing: number; rolling: number; clients: number };
   events: EventRecord[];
-  matches: MatchRecord[];
-  selectedClient: ClientRecord | null;
+  clients: ClientRecord[];
+  sources: Source[];
+  categories: string[];
+  agentRuns: AgentRun[];
+  ingestionRuns: IngestionRun[];
+  reviewItems: ReviewItem[];
   onGoInventory: () => void;
-  onGoMatch: () => void;
+  onGoClients: () => void;
+  onGoReview: () => void;
 }) {
-  const attention = events
-    .filter((event) => event.derived_status === "Closing")
-    .slice(0, 5);
+  const activeEvents = events.filter((event) =>
+    ["Active", "Closing", "Rolling"].includes(event.derived_status),
+  );
+  const uniqueActiveEvents = Array.from(
+    new Map(
+      activeEvents.map((event) => [
+        `${event.title.toLowerCase()}|${event.source_url || event.apply_url || event.id}`,
+        event,
+      ]),
+    ).values(),
+  );
+  const openReviews = reviewItems.filter((item) => item.status === "open").length;
+  const enabledSources = sources.filter((source) => source.status === "active" && source.refresh_enabled).length;
+  const latestAgent = agentRuns[0];
+  const latestIngestion = ingestionRuns[0];
+  const categoryRows = categories.map((category) => {
+    const opportunities = uniqueActiveEvents.filter((event) => event.category === category);
+    const demandClients = clients.filter((client) =>
+      client.preferred_categories.some((item) => item.toLowerCase() === category.toLowerCase()),
+    );
+    const demand = demandClients.length;
+    const coverage = demand ? Math.min(100, Math.round((opportunities.length / demand) * 100)) : opportunities.length ? 100 : 0;
+
+    return {
+      category,
+      opportunities,
+      demand,
+      coverage,
+    };
+  });
+  const coveredCategories = categoryRows.filter((row) => row.opportunities.length > 0).length;
+  const topCategories = [...categoryRows].sort((left, right) => {
+    const delta = right.opportunities.length - left.opportunities.length;
+    if (delta) return delta;
+    return right.demand - left.demand;
+  });
+  const visibleCategoryRows = topCategories.filter((row) => row.opportunities.length > 0 || row.demand > 0);
 
   return (
     <>
       <div className="metrics">
-        <Metric label="Active inventory" value={metrics.active} icon={<Award size={15} />} accent />
-        <Metric label="Closing soon" value={metrics.closing} icon={<Inbox size={15} />} />
-        <Metric label="Rolling" value={metrics.rolling} icon={<BriefcaseBusiness size={15} />} />
-        <Metric label="Clients" value={metrics.clients} icon={<Users size={15} />} />
+        <Metric
+          label="Active opportunities"
+          value={uniqueActiveEvents.length}
+          icon={<Award size={15} />}
+          detail="Deduped active, closing, and rolling records"
+          accent
+        />
+        <Metric
+          label="Categories covered"
+          value={coveredCategories}
+          icon={<BriefcaseBusiness size={15} />}
+          detail={`${categories.length} tracked opportunity categories`}
+        />
+        <Metric
+          label="Active clients"
+          value={clients.length}
+          icon={<Users size={15} />}
+          detail={`${clients.filter((client) => client.preferred_categories.length > 0).length} with category demand`}
+        />
+        <Metric
+          label="Review interrupts"
+          value={openReviews}
+          icon={<Clock3 size={15} />}
+          detail="Human decisions waiting"
+        />
       </div>
 
-      <div className="two-col">
+      <div className="dashboard-grid">
         <section className="section">
           <div className="section-head">
-            <h2>Deadline attention</h2>
-            <button className="btn btn-ghost" type="button" onClick={onGoInventory}>
-              <ArrowUpRight size={15} />
-              Open inventory
-            </button>
+            <h2>Active opportunities by category</h2>
+            <span className="chip">{uniqueActiveEvents.length} active</span>
           </div>
-          <div className="card">
-            {attention.length ? (
-              attention.map((event) => (
-                <div className="trow inventory-grid" key={event.id}>
-                  <div>
-                    <button className="name-button" type="button" onClick={onGoInventory}>
-                      {event.title}
-                    </button>
-                    <div className="sub">{event.summary}</div>
+          <div className="card category-matrix">
+            {visibleCategoryRows.map((row) => (
+              <div className="category-row" key={row.category}>
+                <div>
+                  <div className="cust">{row.category}</div>
+                  <div className="sub">
+                    {row.opportunities.length} active · {row.demand} client{row.demand === 1 ? "" : "s"} seeking
                   </div>
-                  <span>{event.category}</span>
-                  <span className="mono">{money(event)}</span>
-                  <span className="pill">T{event.credibility_tier}</span>
-                  <StatusPill status={event.derived_status} />
-                  <span className="mono">{deadlineText(event.deadline)}</span>
-                  <span />
                 </div>
-              ))
-            ) : (
-              <div className="empty">No closing deadlines.</div>
-            )}
+                <div className="category-bar" aria-label={`${row.category} coverage`}>
+                  <span style={{ width: `${Math.max(row.coverage, row.opportunities.length ? 18 : 0)}%` }} />
+                </div>
+                <div className="category-counts">
+                  <span className="score">{row.opportunities.length}</span>
+                  <span className="pill">{row.demand} clients</span>
+                </div>
+              </div>
+            ))}
+            {!visibleCategoryRows.length ? <div className="empty">No active opportunity or client demand categories yet.</div> : null}
           </div>
         </section>
 
         <section className="section">
           <div className="section-head">
-            <h2>Current match queue</h2>
-            <button className="btn btn-ghost" type="button" onClick={onGoMatch}>
-              <Sparkles size={15} />
-              Match
+            <h2>Client demand by category</h2>
+            <button className="btn btn-ghost" type="button" onClick={onGoClients}>
+              <Users size={15} />
+              Clients
             </button>
           </div>
-          <div className="card">
-            {selectedClient ? (
-              <div className="detail-banner">
+          <div className="card demand-list">
+            {visibleCategoryRows.slice(0, 6).map((row) => (
+              <div className="demand-row" key={row.category}>
                 <div>
-                  <div className="card-label">Selected client</div>
-                  <h2 style={{ margin: "4px 0 2px", fontSize: 20 }}>{selectedClient.name}</h2>
-                  <div className="sub">{selectedClient.field} · {selectedClient.location}</div>
+                  <div className="cust">{row.category}</div>
+                  <div className="sub">
+                    {row.demand ? `${row.demand} active client${row.demand === 1 ? "" : "s"}` : "No active client demand"}
+                  </div>
                 </div>
-                <span className="chip">{matches.length} candidates</span>
-              </div>
-            ) : (
-              <div className="empty">Add a client to start matching.</div>
-            )}
-            {matches.slice(0, 3).map((match) => (
-              <div className="trow match-grid" key={match.event.id}>
-                <div>
-                  <div className="cust">{match.event.title}</div>
-                  <div className="sub">{match.event.summary}</div>
-                </div>
-                <span className="score">{match.score}</span>
-                <span className="sub">{match.breakdown.missingCriteria.join(", ") || "general fit"}</span>
-                <span className="sub">{match.breakdown.matchedKeywords.slice(0, 3).join(", ") || "low keyword overlap"}</span>
-                <span className="pill">T{match.event.credibility_tier}</span>
+                <span className={`pill ${row.opportunities.length >= row.demand && row.demand ? "success" : row.demand ? "warn" : ""}`}>
+                  {row.opportunities.length >= row.demand && row.demand ? "covered" : row.demand ? "needs supply" : "supply only"}
+                </span>
               </div>
             ))}
+            {!visibleCategoryRows.length ? <div className="empty">No active client demand yet.</div> : null}
+          </div>
+        </section>
+      </div>
+
+      <div className="dashboard-grid secondary">
+        <section className="section">
+          <div className="section-head">
+            <h2>Active opportunity list</h2>
+            <button className="btn btn-ghost" type="button" onClick={onGoInventory}>
+              <ArrowUpRight size={15} />
+              Inventory
+            </button>
+          </div>
+          <div className="card sheet-wrap">
+            <div className="sheet dashboard-sheet">
+              <div className="trow head dashboard-opportunity-grid">
+                <span>Opportunity</span>
+                <span>Category</span>
+                <span>Demand</span>
+                <span>Status</span>
+                <span>Deadline</span>
+                <span>Tier</span>
+              </div>
+              {uniqueActiveEvents
+                .slice()
+                .sort((left, right) => left.category.localeCompare(right.category) || left.title.localeCompare(right.title))
+                .map((event) => {
+                  const demand = categoryRows.find((row) => row.category === event.category)?.demand ?? 0;
+                  return (
+                    <div className="trow dashboard-opportunity-grid" key={event.id}>
+                      <div>
+                        <button className="name-button" type="button" onClick={onGoInventory}>
+                          {event.title}
+                        </button>
+                        <div className="sub">{event.summary}</div>
+                      </div>
+                      <span>{event.category}</span>
+                      <span className="mono">{demand}</span>
+                      <StatusPill status={event.derived_status} />
+                      <span className="mono">{deadlineText(event.deadline)}</span>
+                      <span className="pill">T{event.credibility_tier}</span>
+                    </div>
+                  );
+                })}
+              {!uniqueActiveEvents.length ? <div className="empty">No active opportunities yet.</div> : null}
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="section-head">
+            <h2>Operating health</h2>
+            <button className="btn btn-ghost" type="button" onClick={onGoReview}>
+              <Clock3 size={15} />
+              Review
+            </button>
+          </div>
+          <div className="card health-card">
+            <HealthRow label="Refreshable sources" value={`${enabledSources}/${sources.length}`} note="Active registry sources" />
+            <HealthRow
+              label="Latest agent"
+              value={latestAgent ? latestAgent.status : "none"}
+              note={latestAgent ? `${latestAgent.pages_checked} pages · ${latestAgent.interruptions} interrupts` : "No Phase 3 run yet"}
+            />
+            <HealthRow
+              label="Latest ingestion"
+              value={latestIngestion ? latestIngestion.status : "none"}
+              note={latestIngestion ? latestIngestionText(latestIngestion) : "No Phase 2 run yet"}
+            />
+            <HealthRow label="Open review" value={String(openReviews)} note="Approve or reject before client send" />
           </div>
         </section>
       </div>
@@ -827,15 +938,33 @@ function DashboardView({
   );
 }
 
+function latestIngestionText(run: IngestionRun) {
+  return `${run.pages_checked} pages · ${run.events_upserted} upserts`;
+}
+
+function HealthRow({ label, value, note }: { label: string; value: string; note: string }) {
+  return (
+    <div className="health-row">
+      <div>
+        <div className="card-label">{label}</div>
+        <div className="sub">{note}</div>
+      </div>
+      <span className="pill ink">{value}</span>
+    </div>
+  );
+}
+
 function Metric({
   label,
   value,
   icon,
+  detail,
   accent,
 }: {
   label: string;
   value: number;
   icon: React.ReactNode;
+  detail?: string;
   accent?: boolean;
 }) {
   return (
@@ -845,7 +974,7 @@ function Metric({
         {label}
       </div>
       <div className="value">{value}</div>
-      <div className="delta">SETU - DISCOVER record</div>
+      <div className="delta">{detail ?? "SETU - DISCOVER record"}</div>
     </div>
   );
 }
