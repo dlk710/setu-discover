@@ -2,15 +2,15 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: marga
-      POSTGRES_PASSWORD: marga
-      POSTGRES_DB: marga
+      POSTGRES_USER: discover
+      POSTGRES_PASSWORD: discover
+      POSTGRES_DB: discover
     ports:
       - "5435:5432"
     volumes:
-      - marga_pg:/var/lib/postgresql/data
+      - discover_pg:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U marga -d marga"]
+      test: ["CMD-SHELL", "pg_isready -U discover -d discover"]
       interval: 5s
       timeout: 5s
       retries: 12
@@ -21,9 +21,9 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://marga:marga@db:5432/marga
+      DATABASE_URL: postgres://discover:discover@db:5432/discover
       SESSION_SECRET: local-review-secret
-      SETU_DISCOVER_URL: http://localhost:3004
+      DISCOVER_URL: http://localhost:3004
       PHASE2_RUN_TOKEN: ${PHASE2_RUN_TOKEN:-local-phase-run-token}
       PHASE2_SCHEDULE_TIME: ${PHASE2_SCHEDULE_TIME:-06:00}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
@@ -33,7 +33,7 @@ services:
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
-      SMTP_FROM: ${SMTP_FROM:-team@marga.local}
+      SMTP_FROM: ${SMTP_FROM:-team@discover.local}
     ports:
       - "3004:3004"
     volumes:
@@ -41,4 +41,4 @@ services:
       - /app/node_modules
 
 volumes:
-  marga_pg:
+  discover_pg:

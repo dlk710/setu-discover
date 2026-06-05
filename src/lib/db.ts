@@ -2,21 +2,21 @@ import crypto from "node:crypto";
 import { Pool, type PoolClient, type QueryResultRow } from "pg";
 
 declare global {
-  var margaPool: Pool | undefined;
+  var discoverPool: Pool | undefined;
 }
 
 const connectionString =
-  process.env.DATABASE_URL || "postgres://marga:marga@localhost:5435/marga";
+  process.env.DATABASE_URL || "postgres://discover:discover@localhost:5435/discover";
 
 export const pool =
-  globalThis.margaPool ??
+  globalThis.discoverPool ??
   new Pool({
     connectionString,
     max: 10,
   });
 
 if (process.env.NODE_ENV !== "production") {
-  globalThis.margaPool = pool;
+  globalThis.discoverPool = pool;
 }
 
 export function makeId(prefix: string) {

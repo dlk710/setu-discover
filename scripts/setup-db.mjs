@@ -6,7 +6,8 @@ import pg from "pg";
 const { Pool } = pg;
 
 const databaseUrl =
-  process.env.DATABASE_URL || "postgres://marga:marga@localhost:5435/marga";
+  process.env.DATABASE_URL || "postgres://discover:discover@localhost:5435/discover";
+const localPassword = "discover123";
 
 function id(prefix) {
   return `${prefix}_${crypto.randomUUID().replaceAll("-", "").slice(0, 16)}`;
@@ -120,14 +121,14 @@ async function main() {
   const users = [
     {
       id: "usr_admin",
-      name: "Setu Admin",
-      email: "admin@marga.local",
+      name: "Discover Admin",
+      email: "admin@discover.local",
       role: "admin",
     },
     {
       id: "usr_team",
-      name: "Team Member",
-      email: "teammate@marga.local",
+      name: "Discover Team Member",
+      email: "teammate@discover.local",
       role: "team",
     },
   ];
@@ -136,8 +137,12 @@ async function main() {
     await pool.query(
       `INSERT INTO users (id, name, email, password_hash, role)
        VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, role = EXCLUDED.role`,
-      [user.id, user.name, user.email, hashPassword("marga123"), user.role],
+       ON CONFLICT (id) DO UPDATE SET
+         name = EXCLUDED.name,
+         email = EXCLUDED.email,
+         password_hash = EXCLUDED.password_hash,
+         role = EXCLUDED.role`,
+      [user.id, user.name, user.email, hashPassword(localPassword), user.role],
     );
   }
 
@@ -324,7 +329,7 @@ async function main() {
   }
 
   await pool.end();
-  console.log(`SETU - DISCOVER database ready (${id("setup")}).`);
+  console.log(`Discover database ready (${id("setup")}).`);
 }
 
 main().catch((error) => {

@@ -1,4 +1,4 @@
-# SETU - DISCOVER Nonfunctional Requirements
+# Discover Nonfunctional Requirements
 
 ## Deployment Model
 
@@ -15,7 +15,7 @@
 - Repeated Phase 3 fetch failures are written to dead letters.
 - Sources that return zero candidates create alerts for likely layout changes.
 - Agent runs store checkpoints and graph step traces for diagnosis.
-- Phase 4 SETU exports are generated on demand from current database state, avoiding stale packet storage.
+- Phase 4 Evidence exports are generated on demand from current database state, avoiding stale packet storage.
 
 ## Safety and Guardrails
 
@@ -25,7 +25,7 @@
 - Pay-to-play concerns are routed to human review when fees and low credibility tiers indicate risk.
 - Low-confidence extractions are not silently accepted by the Phase 3 agent.
 - Curator proposals do not enter the trusted source registry until an admin adds them.
-- SETU export is a structured evidence packet, not an automatic petition filing.
+- Evidence export is a structured evidence packet, not an automatic petition filing.
 
 ## Security
 
@@ -57,7 +57,7 @@
 - The `events` table remains the system-of-record spine.
 - Phase 2 and Phase 3 reuse the same guarded fetch and extraction primitives.
 - Phase 4 keeps semantic score in the match breakdown contract so future Qdrant embeddings can replace the local scorer without changing UI surfaces.
-- UI components follow the existing SETU Finance visual language.
+- UI components follow the existing Discover visual language.
 - Tables are responsive and verified for no horizontal overflow on mobile and desktop.
 
 ## Compliance and Data Handling

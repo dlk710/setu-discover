@@ -64,16 +64,16 @@ type AppState = {
 };
 
 const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: Database },
+  { id: "dashboard", label: "Overview", icon: Database },
   { id: "inventory", label: "Inventory", icon: Award },
   { id: "clients", label: "Clients", icon: Users },
-  { id: "matches", label: "Match", icon: Sparkles },
-  { id: "phase4", label: "Phase 4", icon: FileText },
-  { id: "emails", label: "Emails", icon: Mail },
-  { id: "sources", label: "Sources", icon: ShieldCheck },
-  { id: "ingestion", label: "Ingestion", icon: RefreshCw },
-  { id: "agent", label: "Agent", icon: Bot },
-  { id: "review", label: "Review", icon: Clock3 },
+  { id: "matches", label: "Match & send", icon: Sparkles },
+  { id: "phase4", label: "Intelligence", icon: FileText },
+  { id: "emails", label: "Email log", icon: Mail },
+  { id: "sources", label: "Source registry", icon: ShieldCheck },
+  { id: "ingestion", label: "Daily refresh", icon: RefreshCw },
+  { id: "agent", label: "Discovery agent", icon: Bot },
+  { id: "review", label: "Review queue", icon: Clock3 },
 ] as const;
 
 type TabId = (typeof navItems)[number]["id"];
@@ -474,7 +474,7 @@ export function SetuDiscoverPortal() {
   };
 
   if (loading) {
-    return <div className="empty">Loading SETU - DISCOVER...</div>;
+    return <div className="empty">Loading Discover...</div>;
   }
 
   if (!state) {
@@ -486,8 +486,8 @@ export function SetuDiscoverPortal() {
       <aside className="sidebar">
         <div className="logo-wrap">
           <div className="wordmark">
-            <span className="letters">SETU</span>
-            <span className="brand-sub">DISCOVER</span>
+            <span className="letters">Discover</span>
+            <span className="brand-sub">Opportunity studio</span>
             <span className="deck" />
           </div>
         </div>
@@ -513,7 +513,7 @@ export function SetuDiscoverPortal() {
         <div className="sidebar-foot">
           <div className="chip">
             <CheckCircle2 size={14} />
-            Discover
+            Discover ready
           </div>
           <div style={{ marginTop: 8 }}>{state.user.name}</div>
         </div>
@@ -778,8 +778,8 @@ function LoginShell({
     <div className="auth-shell">
       <div className="auth-grid">
         <section className="auth-hero">
-          <div className="auth-kicker">SETU profile build</div>
-          <h1>SETU - DISCOVER</h1>
+          <div className="auth-kicker">Profile build</div>
+          <h1>Discover</h1>
           <p className="auth-copy">
             Inventory, client profile coverage, transparent matching, and team email logging on a local database.
           </p>
@@ -801,14 +801,14 @@ function LoginShell({
         <form className="auth-card" onSubmit={onLogin}>
           <div className="card-label">Team login</div>
           <h2>Sign in</h2>
-          <p className="auth-note">Use the local review account for SETU - DISCOVER.</p>
+          <p className="auth-note">Use the local review account for Discover.</p>
           <div className="field">
             <label htmlFor="email">Email</label>
-            <input id="email" name="email" type="email" defaultValue="admin@marga.local" />
+            <input id="email" name="email" type="email" defaultValue="admin@discover.local" />
           </div>
           <div className="field">
             <label htmlFor="password">Password</label>
-            <input id="password" name="password" type="password" defaultValue="marga123" />
+            <input id="password" name="password" type="password" defaultValue="discover123" />
           </div>
           {error ? <div className="pill danger">{error}</div> : null}
           <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: 14 }} type="submit">
@@ -911,6 +911,9 @@ function DashboardView({
           detail="Human decisions waiting"
         />
       </div>
+      <InfoNote>
+        Overview reflects active, closing, and rolling opportunities only. Category demand blends active supply with client profile gaps.
+      </InfoNote>
 
       <div className="dashboard-grid">
         <section className="section">
@@ -1014,25 +1017,25 @@ function DashboardView({
 
         <section className="section">
           <div className="section-head">
-            <h2>Operating health</h2>
+            <h2>Last discovery run</h2>
             <button className="btn btn-ghost" type="button" onClick={onGoReview}>
               <Clock3 size={15} />
-              Review
+              Review queue
             </button>
           </div>
           <div className="card health-card">
-            <HealthRow label="Refreshable sources" value={`${enabledSources}/${sources.length}`} note="Active registry sources" />
+            <HealthRow label="Refreshable sources" value={`${enabledSources}/${sources.length}`} note="Canonical allowlist sources" />
             <HealthRow
-              label="Latest agent"
+              label="Agent run"
               value={latestAgent ? latestAgent.status : "none"}
               note={latestAgent ? `${latestAgent.pages_checked} pages · ${latestAgent.interruptions} interrupts` : "No Phase 3 run yet"}
             />
             <HealthRow
-              label="Latest ingestion"
+              label="Ingestion run"
               value={latestIngestion ? latestIngestion.status : "none"}
               note={latestIngestion ? latestIngestionText(latestIngestion) : "No Phase 2 run yet"}
             />
-            <HealthRow label="Open review" value={String(openReviews)} note="Approve or reject before client send" />
+            <HealthRow label="Needs review" value={String(openReviews)} note="Nothing publishes without team disposition" />
           </div>
         </section>
       </div>
@@ -1042,6 +1045,15 @@ function DashboardView({
 
 function latestIngestionText(run: IngestionRun) {
   return `${run.pages_checked} pages · ${run.events_upserted} upserts`;
+}
+
+function InfoNote({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="info-note">
+      <span className="info-dot" />
+      {children}
+    </div>
+  );
 }
 
 function HealthRow({ label, value, note }: { label: string; value: string; note: string }) {
@@ -1076,7 +1088,7 @@ function Metric({
         {label}
       </div>
       <div className="value">{value}</div>
-      <div className="delta">{detail ?? "SETU - DISCOVER record"}</div>
+      <div className="delta">{detail ?? "Discover record"}</div>
     </div>
   );
 }
@@ -1118,6 +1130,9 @@ function InventoryView({
         <span className="chip">{events.length} records</span>
         <span className="chip">{sources.length} sources</span>
       </div>
+      <InfoNote>
+        Use Details to inspect the opportunity, then open official apply and source links from the host site.
+      </InfoNote>
       <div className="card sheet-wrap">
         <div className="sheet">
           <div className="trow head inventory-grid">
@@ -1207,6 +1222,9 @@ function ClientsView({
         />
         <span className="chip">{clients.length} profiles</span>
       </div>
+      <InfoNote>
+        Target versus covered criteria drives the matching priority for each client.
+      </InfoNote>
       <div className="card sheet-wrap">
         <div className="sheet">
           <div className="trow head client-grid">
@@ -1269,10 +1287,10 @@ function MatchesView({
   return (
     <section className="section">
       <div className="section-head">
-        <h2>Hybrid matching</h2>
+        <h2>Match & send</h2>
         <span className="chip">
           <Sparkles size={14} />
-          Heuristic + semantic
+          Rank then email
         </span>
       </div>
       <div className="toolbar">
@@ -1292,6 +1310,9 @@ function MatchesView({
           <span className="chip">{selectedClient.covered_criteria.length} covered</span>
         </div>
       ) : null}
+      <InfoNote>
+        Ranked by criterion gap, credibility, keyword fit, semantic fit, actionability, and location. Email sends are logged against the client.
+      </InfoNote>
       <div className="card sheet-wrap">
         <div className="sheet">
           <div className="trow head match-grid">
@@ -1377,7 +1398,7 @@ function Phase4View({
     <>
       <section className="section">
         <div className="section-head">
-          <h2>Phase 4 intelligence</h2>
+          <h2>Discover intelligence</h2>
           <button className="btn btn-ghost" type="button" onClick={onRefresh} disabled={loading}>
             <RefreshCw size={15} />
             Refresh
@@ -1395,7 +1416,7 @@ function Phase4View({
           </span>
           <span className="chip">
             <FileText size={14} />
-            SETU export
+            Evidence export
           </span>
         </div>
         <div className="phase4-capabilities">
@@ -1419,7 +1440,7 @@ function Phase4View({
             <span className="chip">{portal?.client?.name ?? "No client"}</span>
           </div>
           <div className="card phase4-panel">
-            {loading ? <div className="empty">Loading Phase 4 intelligence...</div> : null}
+            {loading ? <div className="empty">Loading Discover intelligence...</div> : null}
             {!loading && portal?.client ? (
               <>
                 <div className="detail-banner compact-banner">
@@ -1447,7 +1468,7 @@ function Phase4View({
 
         <section className="section">
           <div className="section-head">
-            <h2>SETU export</h2>
+            <h2>Evidence export</h2>
             <span className={`pill ${portal?.exportReady ? "success" : "warn"}`}>
               {portal?.exportReady ? "ready" : "waiting"}
             </span>
@@ -1471,7 +1492,7 @@ function Phase4View({
             {exportMatch && portal?.client ? (
               <a
                 className="btn btn-primary phase4-export"
-                href={`/api/exports/setu?clientId=${portal.client.id}&eventId=${exportMatch.event.id}`}
+                href={`/api/exports/evidence?clientId=${portal.client.id}&eventId=${exportMatch.event.id}`}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -1514,7 +1535,7 @@ function Phase4View({
                 {portal.client ? (
                   <a
                     className="btn btn-link"
-                    href={`/api/exports/setu?clientId=${portal.client.id}&eventId=${match.event.id}`}
+                    href={`/api/exports/evidence?clientId=${portal.client.id}&eventId=${match.event.id}`}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -1652,6 +1673,9 @@ function SourcesView({
             {sourcePages.length} pages
           </span>
         </div>
+        <InfoNote>
+          The source registry is the canonical allowlist. Discovery should use official host pages and avoid aggregators.
+        </InfoNote>
         <div className="card sheet-wrap">
           <div className="sheet">
             <div className="trow head source-grid">
@@ -1713,6 +1737,26 @@ function SourcesView({
             ))}
             {!sources.length ? <div className="empty">No sources configured yet.</div> : null}
           </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="section-head">
+          <h2>Denylist</h2>
+          <span className="chip">Blocked from active inventory</span>
+        </div>
+        <div className="card denylist-card">
+          {[
+            "Aggregator pages without official apply links",
+            "Pay-to-play listings with weak credibility signals",
+            "Retired demo fixture domains",
+          ].map((item) => (
+            <div className="deny-row" key={item}>
+              <TriangleAlert size={15} />
+              <span>{item}</span>
+              <span className="pill danger">blocked</span>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -2064,6 +2108,9 @@ function ReviewQueueView({
         <h2>Review queue</h2>
         <span className="chip">{openCount} open</span>
       </div>
+      <InfoNote>
+        Human-in-the-loop queue for low-confidence extractions and source concerns. Nothing publishes to active inventory without approval.
+      </InfoNote>
       <div className="card sheet-wrap">
         <div className="sheet">
           <div className="trow head review-grid">
@@ -2570,26 +2617,26 @@ function FieldTextarea({
 
 function topbarTitle(tab: TabId) {
   return {
-    dashboard: "SETU - DISCOVER dashboard",
+    dashboard: "Discover overview",
     inventory: "Inventory table",
     clients: "Client profile database",
-    matches: "Match opportunities",
-    phase4: "Phase 4 intelligence",
+    matches: "Match & send",
+    phase4: "Discover intelligence",
     emails: "Email history",
-    sources: "Source baseline",
-    ingestion: "Phase 2 ingestion",
-    agent: "Phase 3 agent",
+    sources: "Source registry",
+    ingestion: "Daily refresh",
+    agent: "Discovery agent",
     review: "Review queue",
   }[tab];
 }
 
 function topbarSubtitle(tab: TabId) {
   return {
-    dashboard: "Manual discovery system of record for the team.",
+    dashboard: "Active opportunity inventory, category coverage, client demand, and refresh health.",
     inventory: "All eight categories, fee visibility, tiers, status, and links.",
     clients: "Target criteria, covered criteria, keywords, field, and location.",
     matches: "Criterion gap, credibility, keyword fit, semantic fit, actionability, and location.",
-    phase4: "Hybrid matching, client portal preview, curator proposals, and SETU export.",
+    phase4: "Hybrid matching, client portal preview, curator proposals, and evidence export.",
     emails: "Outbound attempts logged against the client record.",
     sources: "Canonical domains, seed pages, refresh status, and source-page change tracking.",
     ingestion: "Guarded fetch, change detection, structured extraction, review flags, and match refresh.",

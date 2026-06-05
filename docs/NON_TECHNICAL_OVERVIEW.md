@@ -1,8 +1,8 @@
-# SETU - DISCOVER Nontechnical Overview
+# Discover Nontechnical Overview
 
 ## What It Is
 
-SETU - DISCOVER is an internal discovery workbench for finding profile-building opportunities that can support a client's evidence portfolio. The product helps the team move from manual research to structured, reviewable, agent-assisted discovery.
+Discover is an internal discovery workbench for finding profile-building opportunities that can support a client's evidence portfolio. The product helps the team move from manual research to structured, reviewable, agent-assisted discovery.
 
 ## What It Helps The Team Do
 
@@ -14,7 +14,7 @@ SETU - DISCOVER is an internal discovery workbench for finding profile-building 
 - Let an agent discover new pages within approved source domains.
 - Route uncertain results to a human before they become client-facing recommendations.
 - Preview what a client would see: criteria coverage, open gaps, and recommended next actions.
-- Export a structured SETU evidence packet for a client/opportunity pair.
+- Export a structured Discover evidence packet for a client/opportunity pair.
 - Review proposed new sources before they enter the trusted registry.
 
 ## How The Phases Work
@@ -33,7 +33,7 @@ The system adds a constrained discovery agent. The agent can look inside approve
 
 ### Phase 4
 
-The system adds the intelligence layer: hybrid semantic matching, client portal preview, curator proposals for source expansion, and SETU export packets. Humans still approve source additions and client communication.
+The system adds the intelligence layer: hybrid semantic matching, client portal preview, curator proposals for source expansion, and Evidence export packets. Humans still approve source additions and client communication.
 
 ## What Humans Still Control
 
@@ -43,11 +43,11 @@ The system adds the intelligence layer: hybrid semantic matching, client portal 
 - Source credibility tiers and source status.
 - Final client communication.
 - Whether a curator proposal becomes a trusted source.
-- Whether a SETU export is used downstream in a petition workflow.
+- Whether a Evidence export is used downstream in a petition workflow.
 
 ## What AI Does
 
-AI is optional and scoped. Phase 2 can use OpenAI structured extraction when changed source content needs parsing. Phase 3 runs local rule extraction first and can optionally escalate low-confidence records to OpenAI. Phase 4 semantic matching is deterministic and local by default. AI does not control login, CRUD, source allowlists, source approval, review approval, SETU export usage, or email sending.
+AI is optional and scoped. Phase 2 can use OpenAI structured extraction when changed source content needs parsing. Phase 3 runs local rule extraction first and can optionally escalate low-confidence records to OpenAI. Phase 4 semantic matching is deterministic and local by default. AI does not control login, CRUD, source allowlists, source approval, review approval, Evidence export usage, or email sending.
 
 ## Review Queue Meaning
 
@@ -55,7 +55,7 @@ The review queue is where the product asks a human to decide. Items appear when 
 
 ## Current Local Review Account
 
-- Admin: `admin@marga.local`
-- Password: `marga123`
+- Admin: `admin@discover.local`
+- Password: `discover123`
 
 These credentials are for local review only.

@@ -1,8 +1,8 @@
-# SETU - DISCOVER Product Capabilities
+# Discover Product Capabilities
 
 ## What The Product Can Do Now
 
-SETU - DISCOVER is a local-first operating system for finding, qualifying, matching, sending, and exporting EB-1A profile-building opportunities.
+Discover is a local-first operating system for finding, qualifying, matching, sending, and exporting EB-1A profile-building opportunities.
 
 ## Core Operating Capabilities
 
@@ -34,7 +34,7 @@ SETU - DISCOVER is a local-first operating system for finding, qualifying, match
   - open gaps
   - ranked client-ready recommendations
   - next best action
-- SETU export creates a JSON evidence packet with:
+- Evidence export creates a JSON evidence packet with:
   - client profile details
   - opportunity details
   - source and apply links
@@ -71,11 +71,11 @@ SETU - DISCOVER is a local-first operating system for finding, qualifying, match
 - Review queue approvals and rejections.
 - Client communication.
 - Curator proposal approval.
-- Final evidence use inside SETU petitions.
+- Final evidence use inside downstream evidence records.
 
 ## Local Review Entry Points
 
 - App: `http://localhost:3004`
-- Admin: `admin@marga.local`
-- Password: `marga123`
+- Admin: `admin@discover.local`
+- Password: `discover123`
 - GitHub: `https://github.com/dlk710/setu-discover`

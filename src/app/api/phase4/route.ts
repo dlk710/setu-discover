@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       "Hybrid heuristic plus semantic opportunity matching",
       "Client-facing criteria coverage preview",
       "Human-reviewed source curator proposals",
-      "SETU evidence export packet",
+      "Discover evidence export packet",
       "Local Postgres system of record with agent and ingestion audit trails",
     ],
   });

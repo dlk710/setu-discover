@@ -20,7 +20,7 @@ async function loadLocalEnv() {
 
 await loadLocalEnv();
 
-const baseUrl = (process.env.SETU_DISCOVER_URL || "http://localhost:3004").replace(/\/$/, "");
+const baseUrl = (process.env.DISCOVER_URL || "http://localhost:3004").replace(/\/$/, "");
 const token = process.env.PHASE2_RUN_TOKEN;
 const mode = process.argv[2] || process.env.PHASE3_RUN_MODE || "agentic";
 
@@ -33,7 +33,7 @@ const response = await fetch(`${baseUrl}/api/agent/run`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    "x-setu-run-token": token,
+    "x-discover-run-token": token,
   },
   body: JSON.stringify({ mode }),
 });

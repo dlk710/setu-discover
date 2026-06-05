@@ -42,4 +42,4 @@ export const credibilityLabels: Record<number, string> = {
   3: "Tier 3",
 };
 
-export const sessionCookieName = "marga_session";
+export const sessionCookieName = "discover_session";

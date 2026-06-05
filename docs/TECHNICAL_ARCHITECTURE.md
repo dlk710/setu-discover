@@ -1,4 +1,4 @@
-# SETU - DISCOVER Technical Architecture
+# Discover Technical Architecture
 
 ## Stack
 
@@ -17,7 +17,7 @@
 Default local PostgreSQL:
 
 ```text
-postgres://marga:marga@localhost:5435/marga
+postgres://discover:discover@localhost:5435/discover
 ```
 
 Default app URL:
@@ -139,16 +139,16 @@ Primary functions:
 
 - `buildClientPortalSummary()`
 - `buildCuratorProposals()`
-- `buildSetuExport()`
+- `buildEvidenceExport()`
 
 Routes:
 
 ```text
 GET /api/phase4?clientId=<client-id>
-GET /api/exports/setu?clientId=<client-id>&eventId=<event-id>
+GET /api/exports/evidence?clientId=<client-id>&eventId=<event-id>
 ```
 
-The Phase 4 route returns client portal preview data, curator proposals, and capability labels. The SETU export route returns a JSON evidence packet for a valid client/opportunity pair.
+The Phase 4 route returns client portal preview data, curator proposals, and capability labels. The Evidence export route returns a JSON evidence packet for a valid client/opportunity pair.
 
 ## Hybrid Matching
 
@@ -184,7 +184,7 @@ Supported statuses:
 - `rejected`: closes item and archives linked event if one exists.
 - `open`: reopens item.
 
-## SETU Export Shape
+## Evidence Export Shape
 
 The export packet contains:
 
@@ -194,7 +194,7 @@ The export packet contains:
 - `ranking_evidence`
 - `operating_next_steps`
 
-The packet is not a petition filing. It is a structured bridge from discovery operations into downstream SETU petition evidence workflows after the client completes an opportunity.
+The packet is not a petition filing. It is a structured bridge from discovery operations into downstream evidence workflows after the client completes an opportunity.
 
 ## Environment Variables
 
@@ -204,7 +204,7 @@ Required:
 DATABASE_URL
 SESSION_SECRET
 PHASE2_RUN_TOKEN
-SETU_DISCOVER_URL
+DISCOVER_URL
 ```
 
 Optional:

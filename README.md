@@ -1,6 +1,6 @@
-# SETU - DISCOVER
+# Discover
 
-Local SETU profile-discovery portal for operating opportunity inventory, client profiles, canonical source ingestion, agentic discovery, hybrid matching, client portal preview, SETU export, and email-out logging.
+Local Discover profile-discovery portal for operating opportunity inventory, client profiles, canonical source ingestion, agentic discovery, hybrid matching, client portal preview, evidence export, and email-out logging.
 
 ## Run locally with Docker
 
@@ -12,8 +12,8 @@ Open `http://localhost:3004`.
 
 Demo users:
 
-- `admin@marga.local` / `marga123`
-- `teammate@marga.local` / `marga123`
+- `admin@discover.local` / `discover123`
+- `teammate@discover.local` / `discover123`
 
 ## Run locally without Docker
 
@@ -35,7 +35,7 @@ Set a local run token in `.env.local`:
 
 ```bash
 PHASE2_RUN_TOKEN=replace-this-local-phase2-token
-SETU_DISCOVER_URL=http://localhost:3004
+DISCOVER_URL=http://localhost:3004
 ```
 
 Run one ingestion pass while the app is running:
@@ -73,7 +73,7 @@ Phase 4 adds the intelligence and scale layer:
 - Hybrid heuristic plus semantic matching.
 - Client portal preview for criteria coverage and ranked recommendations.
 - Curator proposals for new source registry additions.
-- SETU evidence export JSON for client/opportunity packets.
+- Discover evidence export JSON for client/opportunity packets.
 - Vetted standing opportunities from the EB-1A master registry so active inventory contains real client-action paths, not fake fixtures.
 - Inventory added-date visibility so the team can scan when each opportunity entered the active record set.
 
@@ -84,4 +84,4 @@ Phase 4 adds the intelligence and scale layer:
 - [Nonfunctional requirements](docs/NON_FUNCTIONAL_REQUIREMENTS.md)
 - [Nontechnical overview](docs/NON_TECHNICAL_OVERVIEW.md)
 - [Technical architecture](docs/TECHNICAL_ARCHITECTURE.md)
-- Product slide deck: `docs/SETU_DISCOVER_Product_Deck.pptx`
+- Product slide deck: `docs/Discover_Product_Deck.pptx`

@@ -1,8 +1,8 @@
-# SETU - DISCOVER Functional Specification
+# Discover Functional Specification
 
 ## Purpose
 
-SETU - DISCOVER helps the SETU team find, qualify, match, review, and send profile-building opportunities for clients. The product is local-first, PostgreSQL-backed, and organized around one durable inventory spine: the `events` table.
+Discover helps the Discover team find, qualify, match, review, and send profile-building opportunities for clients. The product is local-first, PostgreSQL-backed, and organized around one durable inventory spine: the `events` table.
 
 ## Users
 
@@ -62,7 +62,7 @@ Phase 4 closes the operating loop:
 - Phase 4 workspace shows a client portal preview with criteria coverage, open gaps, ranked recommendations, and next best action.
 - Curator proposals suggest new canonical sources based on client demand, criteria gaps, source coverage, and credibility tier.
 - Admins can add a curator proposal into the source registry for refresh and monitoring.
-- SETU export endpoint creates an evidence packet JSON for a selected client and opportunity.
+- Evidence export endpoint creates an evidence packet JSON for a selected client and opportunity.
 - DB setup creates vetted standing opportunities from direct-action EB-1A registry rows and keeps demo fixtures archived.
 
 ## Key Workflows
@@ -90,7 +90,7 @@ Phase 4 closes the operating loop:
 2. Admin selects a client.
 3. System shows the client's covered criteria and open criteria gaps.
 4. System shows ranked client-ready recommendations.
-5. Admin can open a SETU evidence export JSON for any export-ready recommendation.
+5. Admin can open a Discover evidence export JSON for any export-ready recommendation.
 
 ### Phase 4 Curator Proposal
 
@@ -100,11 +100,11 @@ Phase 4 closes the operating loop:
 4. Admin clicks Add source.
 5. Proposal becomes an active source registry record and source page for future refreshes.
 
-### SETU Evidence Export
+### Evidence Export
 
 1. Admin selects a client-ready opportunity.
 2. System generates a JSON packet with client profile, opportunity source/apply links, criteria tags, ranking evidence, and operating next steps.
-3. SETU petition workflows can consume the packet as a structured starting point after the client completes the opportunity.
+3. Evidence workflows can consume the packet as a structured starting point after the client completes the opportunity.
 
 ### Phase 2 Ingestion
 
@@ -150,7 +150,7 @@ Phase 4 closes the operating loop:
 - Review approval writes an opportunity into Inventory.
 - Phase 4 hybrid match score includes semantic fit.
 - Phase 4 client portal preview renders coverage, gaps, top recommendations, and export status.
-- SETU export endpoint returns an evidence packet JSON for valid client/opportunity pairs.
+- Evidence export endpoint returns an evidence packet JSON for valid client/opportunity pairs.
 - Curator proposals can be added into the source registry.
 - Setup imports 20 vetted standing opportunities and keeps old fixture records inactive.
 - Lint and production build pass.

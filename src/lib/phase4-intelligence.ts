@@ -94,7 +94,7 @@ export function buildClientPortalSummary(
     topMatches,
     exportReady: topMatches.some((match) => Boolean(match.event.apply_url && match.event.source_url)),
     nextBestAction: topMatches.length
-      ? "Review the highest hybrid match, email the client, then export the accepted evidence packet to SETU."
+      ? "Review the highest hybrid match, email the client, then export the accepted evidence packet into Discover."
       : "Run ingestion or add a verified standing opportunity before sending client recommendations.",
   };
 }
@@ -154,9 +154,9 @@ export function buildCuratorProposals(
     .slice(0, 8);
 }
 
-export function buildSetuExport(client: ClientRecord, event: EventRecord, match: MatchRecord) {
+export function buildEvidenceExport(client: ClientRecord, event: EventRecord, match: MatchRecord) {
   return {
-    export_type: "setu_discover_evidence_packet",
+    export_type: "discover_evidence_packet",
     generated_at: new Date().toISOString(),
     client: {
       id: client.id,
@@ -194,9 +194,9 @@ export function buildSetuExport(client: ClientRecord, event: EventRecord, match:
     },
     operating_next_steps: [
       "Confirm current eligibility and submission cycle on the source site.",
-      "Send client recommendation from SETU - DISCOVER.",
+      "Send client recommendation from Discover.",
       "Track application outcome.",
-      "After completion, attach proof artifacts to the SETU petition record.",
+      "After completion, attach proof artifacts to the Discover evidence record.",
     ],
   };
 }

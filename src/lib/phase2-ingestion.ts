@@ -123,7 +123,7 @@ function hasClientActionSignal(opportunity: ExtractedOpportunity, page: Registry
 }
 
 async function reachableClientLink(url: string, page: RegistryPage) {
-  const headers = { "User-Agent": "SETU-DISCOVER-LinkVerifier/0.1" };
+  const headers = { "User-Agent": "Discover-LinkVerifier/0.1" };
 
   for (const method of ["HEAD", "GET"] as const) {
     try {
@@ -261,7 +261,7 @@ export async function guardedFetch(page: RegistryPage): Promise<{
   }
 
   const response = await fetch(page.url, {
-    headers: { "User-Agent": "SETU-DISCOVER-Phase2/0.1" },
+    headers: { "User-Agent": "Discover-Phase2/0.1" },
   });
 
   if (!response.ok) {
@@ -466,7 +466,7 @@ async function extractWithOpenAI(cleanedText: string): Promise<ExtractedOpportun
       text: {
         format: {
           type: "json_schema",
-          name: "setu_discover_opportunities",
+          name: "discover_opportunities",
           strict: true,
           schema: {
             type: "object",

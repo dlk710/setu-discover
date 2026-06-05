@@ -5,7 +5,7 @@ import { runPhase3Agent } from "@/lib/phase3-agent";
 function hasRunToken(request: Request) {
   const expected = process.env.PHASE2_RUN_TOKEN;
   if (!expected) return false;
-  return request.headers.get("x-setu-run-token") === expected;
+  return request.headers.get("x-discover-run-token") === expected;
 }
 
 export async function POST(request: Request) {

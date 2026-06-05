@@ -468,7 +468,7 @@ function buildAgentGraph() {
     .addEdge("persist", END)
     .compile({
       checkpointer: new MemorySaver(),
-      name: "setu-discover-phase3-agent",
+      name: "discover-phase3-agent",
     });
 }
 
