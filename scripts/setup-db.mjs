@@ -219,6 +219,25 @@ async function main() {
     [retiredFixtureEventIds, retiredFixtureSourceIds],
   );
 
+  await pool.query(
+    `UPDATE review_items
+     SET status = 'rejected',
+         reason = trim(concat(reason, ' Retired by registry setup: demo source is not eligible for active inventory.')),
+         updated_at = now()
+     WHERE status = 'open'
+       AND (
+         source_id = ANY($1::text[])
+         OR payload->>'sourceId' = ANY($1::text[])
+         OR payload->>'source_id' = ANY($1::text[])
+         OR page_url ~* '(nationalsciencepress|globalinnovators|industryforumreview|localhost|127\\.0\\.0\\.1)'
+         OR COALESCE(payload->>'pageUrl', '') ~* '(nationalsciencepress|globalinnovators|industryforumreview|localhost|127\\.0\\.0\\.1)'
+         OR COALESCE(payload->>'page_url', '') ~* '(nationalsciencepress|globalinnovators|industryforumreview|localhost|127\\.0\\.0\\.1)'
+         OR COALESCE(payload #>> '{opportunity,sourceUrl}', '') ~* '(nationalsciencepress|globalinnovators|industryforumreview|localhost|127\\.0\\.0\\.1)'
+         OR COALESCE(payload #>> '{opportunity,source_url}', '') ~* '(nationalsciencepress|globalinnovators|industryforumreview|localhost|127\\.0\\.0\\.1)'
+       )`,
+    [retiredFixtureSourceIds],
+  );
+
   await pool.query("DELETE FROM source_pages WHERE source_id <> ALL($1::text[])", [registryIds]);
   await pool.query("DELETE FROM sources WHERE id <> ALL($1::text[])", [registryIds]);
 

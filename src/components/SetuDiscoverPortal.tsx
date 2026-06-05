@@ -651,12 +651,16 @@ export function SetuDiscoverPortal() {
             <ReviewQueueView
               items={state.reviewItems}
               onStatus={async (item, status) => {
-                await requestJson(`/api/review-items/${item.id}`, {
-                  method: "PUT",
-                  body: JSON.stringify({ status }),
-                });
-                await refresh();
-                showToast(`Review item marked ${status}`);
+                try {
+                  await requestJson(`/api/review-items/${item.id}`, {
+                    method: "PUT",
+                    body: JSON.stringify({ status }),
+                  });
+                  await refresh();
+                  showToast(`Review item marked ${status}`);
+                } catch (error) {
+                  showToast(error instanceof Error ? error.message : "Could not update review item");
+                }
               }}
             />
           ) : null}
