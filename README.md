@@ -77,10 +77,31 @@ Phase 4 adds the intelligence and scale layer:
 - Vetted standing opportunities from the EB-1A master registry so active inventory contains real client-action paths, not fake fixtures.
 - Inventory added-date visibility so the team can scan when each opportunity entered the active record set.
 
+## Finance engagement status integration
+
+Discover consumes only the customer engagement flag from Setu Finance. It never connects to the Finance database and does not store amount, invoice, or payment fields.
+
+Configure the consumer endpoint in `.env.local`:
+
+```bash
+FINANCE_BASE_URL=http://127.0.0.1:4173
+FINANCE_INTEGRATION_KEY=replace-with-finance-integration-key
+WEBHOOK_SECRET=replace-with-finance-webhook-secret
+```
+
+Run a full sync on demand:
+
+```bash
+npm run finance:sync
+```
+
+The Phase 2 scheduler also runs the Finance sync hourly when configured and forces a sync before the 06:00 discovery cycle. New opportunity pushes, match lists, client portal recommendations, and evidence exports fail closed unless the client is `active` with a status timestamp less than 24 hours old.
+
 ## Documentation
 
 - [Product capabilities](docs/PRODUCT_CAPABILITIES.md)
 - [Functional specification](docs/FUNCTIONAL_SPEC.md)
+- [Finance engagement integration](docs/FINANCE_ENGAGEMENT_INTEGRATION.md)
 - [Nonfunctional requirements](docs/NON_FUNCTIONAL_REQUIREMENTS.md)
 - [Nontechnical overview](docs/NON_TECHNICAL_OVERVIEW.md)
 - [Technical architecture](docs/TECHNICAL_ARCHITECTURE.md)

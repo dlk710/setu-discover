@@ -1,4 +1,4 @@
-import { makeId, normalizeDateInput, normalizeMoneyInput, query, toTextArray } from "@/lib/db";
+import { makeId, normalizeDateInput, normalizeMoneyInput, pool, query, toTextArray } from "@/lib/db";
 import { deriveStatus } from "@/lib/status";
 import type {
   AgentAlert,
@@ -7,6 +7,7 @@ import type {
   AgentStep,
   ClientRecord,
   EmailLog,
+  EngagementStatus,
   EventRecord,
   IngestionItem,
   IngestionRun,
@@ -149,6 +150,52 @@ export async function listClients() {
     `SELECT *
      FROM clients
      ORDER BY name ASC`,
+  );
+}
+
+export async function getClientById(id: string) {
+  const rows = await query<ClientRecord>(
+    `SELECT *
+     FROM clients
+     WHERE id = $1`,
+    [id],
+  );
+  return rows[0] ?? null;
+}
+
+export async function updateClientEngagementByEmails(payload: {
+  emails: string[];
+  status: EngagementStatus;
+  asOf: string | null;
+}) {
+  const emails = payload.emails
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (!emails.length) return 0;
+
+  const result = await pool.query(
+    `UPDATE clients
+     SET engagement_status = $1,
+         engagement_as_of = $2,
+         updated_at = now()
+     WHERE lower(email) = ANY($3::text[])`,
+    [payload.status, payload.asOf, emails],
+  );
+
+  return result.rowCount ?? 0;
+}
+
+export async function logIntegrationSync(payload: {
+  source: string;
+  matched: number;
+  received: number;
+  error?: string;
+}) {
+  await query(
+    `INSERT INTO integration_sync_log(source, matched, received, error, ran_at)
+     VALUES ($1, $2, $3, $4, now())`,
+    [payload.source, payload.matched, payload.received, payload.error ?? ""],
   );
 }
 

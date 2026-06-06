@@ -20,9 +20,11 @@ Phase 1 gives the team a working local portal:
 - Inventory CRUD for opportunities.
 - Inventory list visibility for the date an opportunity was added.
 - Client profile CRUD.
+- Client engagement badge sourced from Setu Finance.
 - Deterministic status from deadline and archive state.
 - Transparent matching score by criteria gap, credibility, keyword fit, actionability, and location.
 - Email compose/send flow with local logging fallback when SMTP is absent.
+- Email and recommendation pushes fail closed unless the selected client is Finance-active with a fresh engagement timestamp.
 - PostgreSQL persistence.
 
 ### Phase 2: Automated Ingestion
@@ -60,6 +62,7 @@ Phase 4 closes the operating loop:
 
 - Hybrid matching adds deterministic semantic text similarity to the existing transparent heuristic score.
 - Phase 4 workspace shows a client portal preview with criteria coverage, open gaps, ranked recommendations, and next best action.
+- Client portal recommendations are hidden unless the client is Finance-active with fresh status.
 - Curator proposals suggest new canonical sources based on client demand, criteria gaps, source coverage, and credibility tier.
 - Admins can add a curator proposal into the source registry for refresh and monitoring.
 - Evidence export endpoint creates an evidence packet JSON for a selected client and opportunity.
@@ -80,9 +83,20 @@ Phase 4 closes the operating loop:
 
 1. Admin opens Match.
 2. Admin selects a client.
-3. System ranks active opportunities using hybrid deterministic scoring.
-4. Admin reviews score evidence and sends email.
-5. Email is logged whether SMTP sends it or local fallback simulates it.
+3. System checks the client's Finance engagement status.
+4. Dormant, inactive, unknown, or stale clients receive no new opportunity list.
+5. Active clients receive ranked active opportunities using hybrid deterministic scoring.
+6. Admin reviews score evidence and sends email.
+7. Email is logged whether SMTP sends it or local fallback simulates it.
+
+### Finance Engagement Sync
+
+1. Scheduler or operator runs `npm run finance:sync`.
+2. Discover calls Finance `GET /api/integration/engagement-status` with `X-Api-Key`.
+3. Discover matches customers by normalized email and optional Finance aliases.
+4. Discover updates only `engagement_status` and `engagement_as_of` on matching clients.
+5. Unmatched clients remain `unknown`.
+6. Sync outcome is logged in `integration_sync_log`.
 
 ### Phase 4 Client Portal Preview
 
@@ -151,6 +165,11 @@ Phase 4 closes the operating loop:
 - Phase 4 hybrid match score includes semantic fit.
 - Phase 4 client portal preview renders coverage, gaps, top recommendations, and export status.
 - Evidence export endpoint returns an evidence packet JSON for valid client/opportunity pairs.
+- Finance sync updates matched client engagement status by normalized email.
+- Unmatched clients remain `unknown`.
+- Dormant, inactive, unknown, or stale clients cannot receive email pushes.
+- Active clients with fresh status can receive email pushes.
+- Admin UI shows engagement status badges only, with no Finance amount/payment fields.
 - Curator proposals can be added into the source registry.
 - Setup imports 20 vetted standing opportunities and keeps old fixture records inactive.
 - Lint and production build pass.

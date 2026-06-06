@@ -607,7 +607,7 @@ button {
 }
 
 .client-grid {
-  grid-template-columns: 1.1fr 1fr 1fr 1.3fr 1.1fr 96px;
+  grid-template-columns: minmax(190px, 1.1fr) minmax(130px, 0.8fr) minmax(130px, 0.8fr) minmax(170px, 1fr) minmax(160px, 0.9fr) 150px 96px;
 }
 
 .source-grid {
@@ -715,6 +715,27 @@ button {
   border-color: color-mix(in srgb, var(--amber) 30%, var(--border-1));
   background: color-mix(in srgb, var(--paper) 65%, var(--amber-soft));
   color: var(--ink);
+}
+
+.engagement-block {
+  display: grid;
+  gap: 4px;
+  align-items: start;
+  min-width: 0;
+}
+
+.engagement-meta {
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .name-button {

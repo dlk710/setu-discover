@@ -154,6 +154,11 @@ type Phase4State = {
   capabilities: string[];
 };
 
+type PushEligibility = {
+  pushable: boolean;
+  reason: string;
+} | null;
+
 async function requestJson<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     ...options,
@@ -332,6 +337,47 @@ function StatusPill({ status }: { status: string }) {
   return <span className={`pill ${statusTone(status)}`}>{status}</span>;
 }
 
+function engagementTone(status: ClientRecord["engagement_status"]) {
+  if (status === "active") return "success";
+  if (status === "dormant") return "warn";
+  if (status === "inactive") return "danger";
+  return "";
+}
+
+function clientEngagementAgeHours(client: ClientRecord) {
+  if (!client.engagement_as_of) return Infinity;
+  const parsed = new Date(client.engagement_as_of).getTime();
+  if (!Number.isFinite(parsed)) return Infinity;
+  return (Date.now() - parsed) / 3.6e6;
+}
+
+function isClientPushable(client: ClientRecord) {
+  return client.engagement_status === "active" && clientEngagementAgeHours(client) <= 24;
+}
+
+function EngagementBadge({
+  client,
+  showAsOf,
+}: {
+  client: ClientRecord;
+  showAsOf?: boolean;
+}) {
+  const stale = client.engagement_status === "active" && !isClientPushable(client);
+  return (
+    <div className="engagement-block">
+      <span className={`pill ${engagementTone(client.engagement_status)}`}>
+        {client.engagement_status}
+      </span>
+      {showAsOf ? (
+        <span className="engagement-meta">
+          {client.engagement_as_of ? `as of ${dateText(client.engagement_as_of)}` : "not synced"}
+          {stale ? " · stale" : ""}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 export function SetuDiscoverPortal() {
   const [state, setState] = useState<AppState | null>(null);
   const [loading, setLoading] = useState(true);
@@ -345,6 +391,7 @@ export function SetuDiscoverPortal() {
   const [sourceModal, setSourceModal] = useState<{ source?: Source } | null>(null);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [matches, setMatches] = useState<MatchRecord[]>([]);
+  const [matchesEligibility, setMatchesEligibility] = useState<PushEligibility>(null);
   const [phase4State, setPhase4State] = useState<Phase4State | null>(null);
   const [phase4Loading, setPhase4Loading] = useState(false);
   const [matchesLoading, setMatchesLoading] = useState(false);
@@ -384,6 +431,13 @@ export function SetuDiscoverPortal() {
     }
   }, [selectedClientId]);
 
+  const clientEngagementKey = useMemo(
+    () => (state?.clients ?? [])
+      .map((client) => `${client.id}:${client.engagement_status}:${client.engagement_as_of ?? ""}`)
+      .join("|"),
+    [state?.clients],
+  );
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -391,17 +445,24 @@ export function SetuDiscoverPortal() {
   useEffect(() => {
     if (!selectedClientId) {
       setMatches([]);
+      setMatchesEligibility(null);
       return;
     }
 
     let cancelled = false;
     setMatchesLoading(true);
-    requestJson<{ matches: MatchRecord[] }>(`/api/matches?clientId=${selectedClientId}`)
+    requestJson<{ matches: MatchRecord[]; pushEligibility: PushEligibility }>(`/api/matches?clientId=${selectedClientId}`)
       .then((payload) => {
-        if (!cancelled) setMatches(payload.matches);
+        if (!cancelled) {
+          setMatches(payload.matches);
+          setMatchesEligibility(payload.pushEligibility);
+        }
       })
       .catch(() => {
-        if (!cancelled) setMatches([]);
+        if (!cancelled) {
+          setMatches([]);
+          setMatchesEligibility(null);
+        }
       })
       .finally(() => {
         if (!cancelled) setMatchesLoading(false);
@@ -410,12 +471,12 @@ export function SetuDiscoverPortal() {
     return () => {
       cancelled = true;
     };
-  }, [selectedClientId, state?.events.length, state?.clients.length]);
+  }, [selectedClientId, state?.events.length, clientEngagementKey]);
 
   useEffect(() => {
     if (activeTab !== "phase4") return;
     void refreshPhase4();
-  }, [activeTab, selectedClientId, state?.events.length, state?.sources.length, state?.clients.length, refreshPhase4]);
+  }, [activeTab, selectedClientId, state?.events.length, state?.sources.length, clientEngagementKey, refreshPhase4]);
 
   const filteredEvents = useMemo(() => {
     const query = inventorySearch.toLowerCase();
@@ -590,6 +651,7 @@ export function SetuDiscoverPortal() {
               selectedClientId={selectedClientId}
               selectedClient={selectedClient}
               matches={matches}
+              eligibility={matchesEligibility}
               loading={matchesLoading}
               onSelectClient={setSelectedClientId}
               onCompose={(match, client) => setEmailModal({ match, client })}
@@ -859,9 +921,10 @@ function DashboardView({
   const enabledSources = sources.filter((source) => source.status === "active" && source.refresh_enabled).length;
   const latestAgent = agentRuns[0];
   const latestIngestion = ingestionRuns[0];
+  const pushableClients = clients.filter(isClientPushable);
   const categoryRows = categories.map((category) => {
     const opportunities = uniqueActiveEvents.filter((event) => event.category === category);
-    const demandClients = clients.filter((client) =>
+    const demandClients = pushableClients.filter((client) =>
       client.preferred_categories.some((item) => item.toLowerCase() === category.toLowerCase()),
     );
     const demand = demandClients.length;
@@ -900,9 +963,9 @@ function DashboardView({
         />
         <Metric
           label="Active clients"
-          value={clients.length}
+          value={pushableClients.length}
           icon={<Users size={15} />}
-          detail={`${clients.filter((client) => client.preferred_categories.length > 0).length} with category demand`}
+          detail={`${clients.length - pushableClients.length} gated by Finance status`}
         />
         <Metric
           label="Review interrupts"
@@ -912,7 +975,7 @@ function DashboardView({
         />
       </div>
       <InfoNote>
-        Overview reflects active, closing, and rolling opportunities only. Category demand blends active supply with client profile gaps.
+        Overview reflects active, closing, and rolling opportunities only. Category demand counts only Finance-active clients with fresh status.
       </InfoNote>
 
       <div className="dashboard-grid">
@@ -1233,6 +1296,7 @@ function ClientsView({
             <span>Location</span>
             <span>Gap criteria</span>
             <span>Keywords</span>
+            <span>Engagement</span>
             <span>Actions</span>
           </div>
           {clients.map((client) => {
@@ -1250,6 +1314,7 @@ function ClientsView({
                 <span>{client.location}</span>
                 <span className="sub">{gaps.join(", ") || "Covered"}</span>
                 <span className="sub">{client.keywords.slice(0, 4).join(", ")}</span>
+                <EngagementBadge client={client} showAsOf />
                 <div className="tag-cloud">
                   <button className="btn btn-ghost" type="button" onClick={() => onEdit(client)} title="Edit">
                     <Edit3 size={15} />
@@ -1272,6 +1337,7 @@ function MatchesView({
   selectedClientId,
   selectedClient,
   matches,
+  eligibility,
   loading,
   onSelectClient,
   onCompose,
@@ -1280,6 +1346,7 @@ function MatchesView({
   selectedClientId: string;
   selectedClient: ClientRecord | null;
   matches: MatchRecord[];
+  eligibility: PushEligibility;
   loading: boolean;
   onSelectClient: (clientId: string) => void;
   onCompose: (match: MatchRecord, client: ClientRecord) => void;
@@ -1307,11 +1374,16 @@ function MatchesView({
             <h2 style={{ margin: "4px 0 2px", fontSize: 20 }}>{selectedClient.name}</h2>
             <div className="sub">{selectedClient.target_criteria.join(", ")}</div>
           </div>
-          <span className="chip">{selectedClient.covered_criteria.length} covered</span>
+          <div className="banner-actions">
+            <EngagementBadge client={selectedClient} showAsOf />
+            <span className="chip">{selectedClient.covered_criteria.length} covered</span>
+          </div>
         </div>
       ) : null}
       <InfoNote>
-        Ranked by criterion gap, credibility, keyword fit, semantic fit, actionability, and location. Email sends are logged against the client.
+        {eligibility && !eligibility.pushable
+          ? eligibility.reason
+          : "Ranked by criterion gap, credibility, keyword fit, semantic fit, actionability, and location. Email sends are logged against active clients."}
       </InfoNote>
       <div className="card sheet-wrap">
         <div className="sheet">
@@ -1323,7 +1395,9 @@ function MatchesView({
             <span>Send</span>
           </div>
           {loading ? <div className="empty">Computing matches...</div> : null}
-          {!loading && matches.length === 0 ? <div className="empty">No active matches yet.</div> : null}
+          {!loading && matches.length === 0 ? (
+            <div className="empty">{eligibility && !eligibility.pushable ? eligibility.reason : "No active matches yet."}</div>
+          ) : null}
           {matches.map((match) => (
             <div className="trow match-grid match-row" key={match.event.id}>
               <div>
@@ -1449,7 +1523,10 @@ function Phase4View({
                     <h2>{portal.client.name}</h2>
                     <div className="sub">{portal.client.field} · {portal.client.location}</div>
                   </div>
-                  <span className="chip">{portal.gaps.length} open gaps</span>
+                  <div className="banner-actions">
+                    <EngagementBadge client={portal.client} showAsOf />
+                    <span className="chip">{portal.gaps.length} open gaps</span>
+                  </div>
                 </div>
                 <div className="coverage-grid">
                   {portal.coverage.map((item) => (
@@ -2426,7 +2503,7 @@ function EmailModal({
     match.event.apply_url ? `Apply link: ${match.event.apply_url}` : "",
     "",
     "Best,",
-    "Setu team",
+    "Discover team",
   ].filter(Boolean).join("\n");
 
   const [subject, setSubject] = useState(defaultSubject);
@@ -2457,6 +2534,7 @@ function EmailModal({
             <div className="card-label">Email out</div>
             <h3>{client.name}</h3>
             <div className="sub">{client.email}</div>
+            <EngagementBadge client={client} showAsOf />
           </div>
           <button className="x" onClick={onClose} type="button"><X size={18} /></button>
         </div>

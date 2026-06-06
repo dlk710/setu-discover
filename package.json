@@ -8,6 +8,7 @@
     "start": "next start --port 3004",
     "lint": "eslint",
     "db:setup": "node scripts/setup-db.mjs",
+    "finance:sync": "node scripts/syncFinanceStatus.js",
     "phase2:run": "node scripts/run-phase2-local.mjs manual",
     "phase2:schedule": "node scripts/phase2-scheduler.mjs",
     "phase3:run": "node scripts/run-phase3-local.mjs agentic"

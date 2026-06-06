@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
+import { isPushableClient, pushEligibilityReason } from "@/lib/engagement";
 import { rankMatches } from "@/lib/matching";
 import { listClients, listEvents, logRecommendation } from "@/lib/repository";
 
@@ -12,7 +13,18 @@ export async function GET(request: Request) {
   const client = clients.find((item) => item.id === clientId) ?? clients[0];
 
   if (!client) {
-    return NextResponse.json({ client: null, matches: [] });
+    return NextResponse.json({ client: null, matches: [], pushEligibility: null });
+  }
+
+  if (!isPushableClient(client)) {
+    return NextResponse.json({
+      client,
+      matches: [],
+      pushEligibility: {
+        pushable: false,
+        reason: pushEligibilityReason(client),
+      },
+    });
   }
 
   const matches = rankMatches(client, events);
@@ -22,5 +34,12 @@ export async function GET(request: Request) {
     ),
   );
 
-  return NextResponse.json({ client, matches });
+  return NextResponse.json({
+    client,
+    matches,
+    pushEligibility: {
+      pushable: true,
+      reason: pushEligibilityReason(client),
+    },
+  });
 }

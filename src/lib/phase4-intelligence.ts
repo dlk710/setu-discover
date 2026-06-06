@@ -1,4 +1,5 @@
 import curatorCandidates from "../../data/curator-candidates.json";
+import { isPushableClient, pushEligibilityReason } from "@/lib/engagement";
 import { rankMatches } from "@/lib/matching";
 import type { ClientRecord, EventRecord, MatchRecord, Source } from "@/lib/types";
 
@@ -85,6 +86,18 @@ export function buildClientPortalSummary(
     status: coveredSet.has(normalized(criterion)) ? "covered" as const : "gap" as const,
   }));
   const gaps = coverage.filter((item) => item.status === "gap").map((item) => item.criterion);
+
+  if (!isPushableClient(client)) {
+    return {
+      client,
+      coverage,
+      gaps,
+      topMatches: [],
+      exportReady: false,
+      nextBestAction: pushEligibilityReason(client),
+    };
+  }
+
   const topMatches = rankMatches(client, events).slice(0, 5);
 
   return {
@@ -105,16 +118,17 @@ export function buildCuratorProposals(
   events: EventRecord[],
 ): CuratorProposal[] {
   const existingDomains = new Set(sources.map((source) => normalized(source.canonical_domain)));
+  const pushableClients = clients.filter(isPushableClient);
   const activeCategories = new Set(
     events
       .filter((event) => !["Expired", "Inactive"].includes(event.derived_status))
       .map((event) => categoryKey(event.category)),
   );
-  const clientGaps = clients.flatMap((client) => {
+  const clientGaps = pushableClients.flatMap((client) => {
     const covered = new Set(client.covered_criteria.map(normalized));
     return client.target_criteria.filter((criterion) => !covered.has(normalized(criterion)));
   });
-  const demandCategories = clients.flatMap((client) => client.preferred_categories.map(categoryKey));
+  const demandCategories = pushableClients.flatMap((client) => client.preferred_categories.map(categoryKey));
 
   return (curatorCandidates as CuratorCandidate[])
     .filter((candidate) => !existingDomains.has(normalized(candidate.canonical_domain)))

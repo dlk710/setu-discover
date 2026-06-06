@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { sendTeamEmail } from "@/lib/email";
-import { logEmail, logRecommendation } from "@/lib/repository";
+import { assertPushable, ForbiddenError } from "@/lib/engagement";
+import { getClientById, logEmail, logRecommendation } from "@/lib/repository";
 
 export async function POST(request: Request) {
   const { user, response } = await requireUser();
@@ -16,6 +17,20 @@ export async function POST(request: Request) {
 
   if (!clientId || !toEmail || !subject || !body) {
     return NextResponse.json({ error: "Missing email fields" }, { status: 400 });
+  }
+
+  const client = await getClientById(clientId);
+  if (!client) {
+    return NextResponse.json({ error: "Client not found" }, { status: 404 });
+  }
+
+  try {
+    assertPushable(client);
+  } catch (error) {
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    throw error;
   }
 
   const sent = await sendTeamEmail({ to: toEmail, subject, body });

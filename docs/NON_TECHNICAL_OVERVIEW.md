@@ -9,6 +9,7 @@ Discover is an internal discovery workbench for finding profile-building opportu
 - Keep a single inventory of awards, judging panels, press opportunities, speaking calls, and similar profile-building records.
 - Keep client profile priorities in one place.
 - Match clients to opportunities using visible scoring.
+- Make sure only Finance-active clients receive new opportunity recommendations.
 - Email relevant opportunities to clients.
 - Refresh opportunities from trusted sources.
 - Let an agent discover new pages within approved source domains.
@@ -35,11 +36,18 @@ The system adds a constrained discovery agent. The agent can look inside approve
 
 The system adds the intelligence layer: hybrid semantic matching, client portal preview, curator proposals for source expansion, and Evidence export packets. Humans still approve source additions and client communication.
 
+## Finance Status Connection
+
+Discover reads one status flag from Setu Finance: active, dormant, inactive, or unknown. Finance owns the rule behind that flag. Discover does not see payment amounts or connect to Finance's database.
+
+When a client is not active, or when the last Finance status is stale, Discover hides new recommendations and blocks outbound opportunity emails. Admins can still see the client profile and the engagement badge.
+
 ## What Humans Still Control
 
 - Which sources are trusted.
 - Which uncertain opportunities are approved or rejected.
 - Which opportunities are sent to clients.
+- Finance owns whether a client is active, dormant, or inactive.
 - Source credibility tiers and source status.
 - Final client communication.
 - Whether a curator proposal becomes a trusted source.

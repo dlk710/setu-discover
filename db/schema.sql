@@ -106,9 +106,41 @@ CREATE TABLE IF NOT EXISTS clients (
   covered_criteria TEXT[] NOT NULL DEFAULT '{}',
   keywords TEXT[] NOT NULL DEFAULT '{}',
   preferred_categories TEXT[] NOT NULL DEFAULT '{}',
+  engagement_status TEXT NOT NULL DEFAULT 'unknown'
+    CHECK (engagement_status IN ('active', 'dormant', 'inactive', 'unknown')),
+  engagement_as_of TIMESTAMPTZ,
   notes TEXT NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS engagement_status TEXT NOT NULL DEFAULT 'unknown';
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS engagement_as_of TIMESTAMPTZ;
+UPDATE clients
+SET engagement_status = 'unknown'
+WHERE engagement_status IS NULL;
+ALTER TABLE clients ALTER COLUMN engagement_status SET DEFAULT 'unknown';
+ALTER TABLE clients ALTER COLUMN engagement_status SET NOT NULL;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'clients_engagement_status_check'
+  ) THEN
+    ALTER TABLE clients
+      ADD CONSTRAINT clients_engagement_status_check
+      CHECK (engagement_status IN ('active', 'dormant', 'inactive', 'unknown'));
+  END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS integration_sync_log (
+  id BIGSERIAL PRIMARY KEY,
+  source TEXT NOT NULL,
+  matched INTEGER NOT NULL DEFAULT 0,
+  received INTEGER NOT NULL DEFAULT 0,
+  error TEXT NOT NULL DEFAULT '',
+  ran_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS recommendations (
@@ -255,6 +287,7 @@ CREATE TABLE IF NOT EXISTS agent_alerts (
 CREATE INDEX IF NOT EXISTS idx_events_deadline ON events(deadline);
 CREATE INDEX IF NOT EXISTS idx_events_category ON events(category);
 CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(email);
+CREATE INDEX IF NOT EXISTS idx_clients_lower_email ON clients((lower(email)));
 CREATE INDEX IF NOT EXISTS idx_email_logs_client ON email_logs(client_id);
 CREATE INDEX IF NOT EXISTS idx_source_pages_source ON source_pages(source_id);
 CREATE INDEX IF NOT EXISTS idx_ingestion_items_run ON ingestion_items(run_id);

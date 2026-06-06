@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { query } from "@/lib/db";
 import { EVENT_CATEGORIES } from "@/lib/constants";
+import { isPushableClient } from "@/lib/engagement";
 import { rankMatches } from "@/lib/matching";
 import {
   createIngestionItem,
@@ -734,8 +735,9 @@ export async function runPhase2Ingestion(mode = "manual") {
 
     const expiredPurged = await purgeExpiredEvents();
     const [clients, events] = await Promise.all([listClients(), listEvents()]);
+    const pushableClients = clients.filter(isPushableClient);
     await Promise.all(
-      clients.flatMap((client) =>
+      pushableClients.flatMap((client) =>
         rankMatches(client, events)
           .slice(0, 8)
           .map((match) =>
@@ -751,7 +753,7 @@ export async function runPhase2Ingestion(mode = "manual") {
       events_upserted: eventsUpserted,
       expired_purged: expiredPurged,
       low_confidence_count: lowConfidenceCount,
-      notes: `Checked ${pagesChecked} registry pages; recomputed client matches.`,
+      notes: `Checked ${pagesChecked} registry pages; recomputed active client matches.`,
     });
   } catch (error) {
     return updateIngestionRun(run.id, {

@@ -9,6 +9,7 @@ Discover is a local-first operating system for finding, qualifying, matching, se
 - Maintain a PostgreSQL-backed opportunity inventory.
 - Show the date each opportunity was added to inventory for quick freshness review.
 - Maintain client profiles with target criteria, covered criteria, keywords, preferred categories, field, and location.
+- Store each client's Finance-owned engagement flag as active, dormant, inactive, or unknown.
 - Track source registry records from the EB-1A master source list.
 - Monitor source pages with fetched and changed timestamps.
 - Run guarded ingestion against canonical source domains.
@@ -17,6 +18,7 @@ Discover is a local-first operating system for finding, qualifying, matching, se
 - Approve or reject review items before records become client-facing.
 - Send or locally simulate recommendation emails.
 - Log email attempts against clients and opportunities.
+- Block opportunity pushes unless the client is Finance-active with fresh status.
 - Archive stale or unsuitable opportunities.
 
 ## Phase 4 Intelligence Capabilities
@@ -34,6 +36,7 @@ Discover is a local-first operating system for finding, qualifying, matching, se
   - open gaps
   - ranked client-ready recommendations
   - next best action
+- Client recommendations are hidden when the client is dormant, inactive, unknown, or stale.
 - Evidence export creates a JSON evidence packet with:
   - client profile details
   - opportunity details
@@ -63,6 +66,16 @@ Discover is a local-first operating system for finding, qualifying, matching, se
 - The Phase 3 agent uses deterministic extraction first and can escalate when configured.
 - Phase 4 matching uses local deterministic semantic scoring, not external embeddings by default.
 - AI does not automatically send emails, approve sources, approve review items, or bypass domain guardrails.
+- AI and matching cannot bypass the Finance engagement gate.
+
+## Finance Engagement Gate
+
+- Discover reads `GET /api/integration/engagement-status` from Finance using `X-Api-Key`.
+- Discover stores only `engagement_status` and `engagement_as_of`.
+- Discover never connects to the Finance database.
+- Discover does not expose amounts, invoices, balances, payments, or thresholds.
+- Admin screens show only the engagement badge.
+- `unknown` is the default and is not pushable.
 
 ## What Humans Control
 

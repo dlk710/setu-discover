@@ -64,6 +64,8 @@ export type EventRecord = {
   updated_at?: string;
 };
 
+export type EngagementStatus = "active" | "dormant" | "inactive" | "unknown";
+
 export type ClientRecord = {
   id: string;
   name: string;
@@ -75,6 +77,8 @@ export type ClientRecord = {
   keywords: string[];
   preferred_categories: string[];
   notes: string;
+  engagement_status: EngagementStatus;
+  engagement_as_of: string | null;
   created_at?: string;
   updated_at?: string;
 };

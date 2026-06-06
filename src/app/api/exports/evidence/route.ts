@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
+import { assertPushable, ForbiddenError } from "@/lib/engagement";
 import { rankMatches } from "@/lib/matching";
 import { buildEvidenceExport } from "@/lib/phase4-intelligence";
 import { listClients, listEvents } from "@/lib/repository";
@@ -17,6 +18,15 @@ export async function GET(request: Request) {
 
   if (!client || !event) {
     return NextResponse.json({ error: "Client or opportunity not found" }, { status: 404 });
+  }
+
+  try {
+    assertPushable(client);
+  } catch (error) {
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    throw error;
   }
 
   const match = rankMatches(client, events).find((item) => item.event.id === event.id);

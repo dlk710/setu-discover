@@ -1,13 +1,34 @@
 import { readFile } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import pg from "pg";
 
 const { Pool } = pg;
 
-const databaseUrl =
+let databaseUrl =
   process.env.DATABASE_URL || "postgres://discover:discover@localhost:5435/discover";
 const localPassword = "discover123";
+
+function loadEnvFile(filePath) {
+  if (!existsSync(filePath)) return;
+  const body = readFileSync(filePath, "utf8");
+  for (const line of body.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (!match) continue;
+    const [, key, rawValue] = match;
+    if (process.env[key] !== undefined) continue;
+    process.env[key] = rawValue.replace(/^["']|["']$/g, "");
+  }
+}
+
+function loadLocalEnv() {
+  loadEnvFile(path.join(process.cwd(), ".env.local"));
+  loadEnvFile(path.join(process.cwd(), ".env"));
+  databaseUrl = process.env.DATABASE_URL || databaseUrl;
+}
 
 function id(prefix) {
   return `${prefix}_${crypto.randomUUID().replaceAll("-", "").slice(0, 16)}`;
@@ -113,6 +134,7 @@ const seedClients = [
 ];
 
 async function main() {
+  loadLocalEnv();
   const pool = new Pool({ connectionString: databaseUrl });
   await waitForDb(pool);
   const schema = await readFile(path.join(process.cwd(), "db/schema.sql"), "utf8");

@@ -1,4 +1,5 @@
 import { Annotation, END, MemorySaver, START, StateGraph } from "@langchain/langgraph";
+import { isPushableClient } from "@/lib/engagement";
 import { rankMatches } from "@/lib/matching";
 import {
   cleanHtml,
@@ -432,8 +433,9 @@ async function persistNode(state: AgentStateType) {
 
   const expiredPurged = await purgeExpiredEvents();
   const [clients, events] = await Promise.all([listClients(), listEvents()]);
+  const pushableClients = clients.filter(isPushableClient);
   await Promise.all(
-    clients.flatMap((client) =>
+    pushableClients.flatMap((client) =>
       rankMatches(client, events)
         .slice(0, 8)
         .map((match) => logRecommendation(client.id, match.event.id, match.score, match.breakdown)),
@@ -442,12 +444,12 @@ async function persistNode(state: AgentStateType) {
 
   await trace(state.runId, "persist", `${eventsUpserted} events upserted`, {
     expiredPurged,
-    clientsRefreshed: clients.length,
+    clientsRefreshed: pushableClients.length,
   });
 
   return {
     counters: mergeCounters(state.counters, { eventsUpserted }),
-    logs: [`Persisted ${eventsUpserted} records and recomputed matches.`],
+    logs: [`Persisted ${eventsUpserted} records and recomputed active client matches.`],
   };
 }
 

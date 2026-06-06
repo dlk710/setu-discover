@@ -41,6 +41,7 @@ Core tables:
   - System-of-record opportunity inventory.
   - `created_at` is surfaced as the Inventory added date.
 - `clients`
+  - Stores profile fields plus Finance-owned `engagement_status` and `engagement_as_of`.
 - `recommendations`
 - `applications`
 - `email_logs`
@@ -51,6 +52,48 @@ Core tables:
 - `agent_steps`
 - `agent_dead_letters`
 - `agent_alerts`
+- `integration_sync_log`
+  - Stores Finance sync received, matched, error, and run timestamp metadata.
+
+## Finance Engagement Integration
+
+Discover consumes:
+
+```text
+GET ${FINANCE_BASE_URL}/api/integration/engagement-status
+Header: X-Api-Key: ${FINANCE_INTEGRATION_KEY}
+```
+
+Consumer script:
+
+```text
+scripts/syncFinanceStatus.js
+```
+
+Manual command:
+
+```bash
+npm run finance:sync
+```
+
+The sync updates matching `clients` rows by normalized email and optional Finance aliases. It writes only `engagement_status` and `engagement_as_of`. Unmatched clients keep the default `unknown` status.
+
+Optional webhook:
+
+```text
+POST /api/webhooks/finance/engagement
+Header: X-Signature: sha256=<hmac>
+```
+
+The webhook verifies HMAC-SHA256 with `WEBHOOK_SECRET` over the raw request body and applies the same single-customer status update as the full sync.
+
+Push eligibility is centralized in:
+
+```text
+src/lib/engagement.ts
+```
+
+The guard requires `engagement_status = active` and a non-stale `engagement_as_of` timestamp. The stale threshold is 24 hours.
 
 ## Phase 2 Pipeline
 
@@ -109,6 +152,8 @@ Graph nodes:
 - `review_interrupt`: writes human-review items into `review_items`.
 - `persist`: writes approved opportunities into `events`, purges expired records, and recomputes recommendations.
 
+Recommendation recompute filters to Finance-active clients with fresh status.
+
 Run endpoint:
 
 ```text
@@ -149,6 +194,8 @@ GET /api/exports/evidence?clientId=<client-id>&eventId=<event-id>
 ```
 
 The Phase 4 route returns client portal preview data, curator proposals, and capability labels. The Evidence export route returns a JSON evidence packet for a valid client/opportunity pair.
+
+Client portal recommendations and evidence exports are blocked for dormant, inactive, unknown, or stale clients.
 
 ## Hybrid Matching
 
@@ -205,6 +252,8 @@ DATABASE_URL
 SESSION_SECRET
 PHASE2_RUN_TOKEN
 DISCOVER_URL
+FINANCE_BASE_URL
+FINANCE_INTEGRATION_KEY
 ```
 
 Optional:
@@ -218,6 +267,7 @@ SMTP_PORT
 SMTP_USER
 SMTP_PASS
 SMTP_FROM
+WEBHOOK_SECRET
 ```
 
 ## Verification Commands

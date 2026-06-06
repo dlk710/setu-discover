@@ -26,12 +26,17 @@
 - Low-confidence extractions are not silently accepted by the Phase 3 agent.
 - Curator proposals do not enter the trusted source registry until an admin adds them.
 - Evidence export is a structured evidence packet, not an automatic petition filing.
+- Customer engagement gating fails closed: missing, unknown, dormant, inactive, or stale status blocks pushes.
+- Finance grace thresholds are not computed in Discover; Discover consumes only the Finance-owned flag.
 
 ## Security
 
 - Secrets must remain in `.env.local`, `.env`, host environment variables, or deployment secret stores.
 - `.env.local` is ignored by git.
 - `OPENAI_API_KEY` must never be committed.
+- `FINANCE_INTEGRATION_KEY` and `WEBHOOK_SECRET` must never be committed.
+- Discover does not connect to the Finance database.
+- Discover does not store Finance amount, invoice, payment, balance, or threshold fields.
 - Run-token access uses `PHASE2_RUN_TOKEN` for local Phase 2 and Phase 3 automation endpoints.
 - The current local auth is team/admin oriented; public client login is out of scope for Phase 3.
 
@@ -51,6 +56,8 @@
 - Each Phase 3 graph node records a trace row with output and decision metadata.
 - Review queue count is visible in navigation.
 - Phase 4 exposes proposal reasons, match score breakdowns, and export readiness.
+- Finance sync writes received/matched counts and errors to `integration_sync_log`.
+- Admin screens expose only the engagement flag and timestamp.
 
 ## Maintainability
 
