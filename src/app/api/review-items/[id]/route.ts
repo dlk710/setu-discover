@@ -138,6 +138,7 @@ async function approveReviewItem(item: ReviewItem) {
     sourceId = "";
   }
   const eventId = item.event_id ?? stableEventId(sourceId, title, sourceUrl);
+  const sourceName = textField(payloadRecord, "sourceName", "source_name");
 
   return upsertEvent(
     {
@@ -161,7 +162,7 @@ async function approveReviewItem(item: ReviewItem) {
       extraction_confidence: nullableNumberField(opportunity, "confidence"),
       last_seen_at: new Date().toISOString(),
       content_hash: textField(payloadRecord, "contentHash", "content_hash") || null,
-      notes: `Approved from Phase 3 review queue${textField(payloadRecord, "sourceName", "source_name") ? ` (${textField(payloadRecord, "sourceName", "source_name")})` : ""}.`,
+      notes: `Approved from review queue${sourceName ? ` (${sourceName})` : ""}.`,
       archived: false,
     },
     eventId,

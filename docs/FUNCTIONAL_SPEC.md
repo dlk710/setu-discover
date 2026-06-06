@@ -6,7 +6,7 @@ Discover helps the Discover team find, qualify, match, review, and send profile-
 
 ## Users
 
-- Admin: manages source registry, inventory, clients, ingestion, agent runs, review queue, and outbound emails.
+- Admin: manages source registry, inventory, clients, ingestion, review queue, and outbound emails.
 - Team member: reviews opportunities, matches clients, composes email outreach, and monitors runs.
 - Client: not yet a separate public login user; Phase 4 includes an internal client portal preview that shows what a client-facing experience would display.
 
@@ -42,19 +42,9 @@ Phase 2 adds deterministic source ingestion:
 - Low-confidence review queue.
 - Local scheduled run support.
 
-### Phase 3: Agentic Discovery
+### Paused: Discovery Agent
 
-Phase 3 adds constrained agentic discovery:
-
-- LangGraph orchestration with explicit graph nodes.
-- Scout node finds new in-domain opportunity pages from seed pages.
-- Guarded fetch node retries and dead-letters repeated failures.
-- Extractor node uses local rule extraction first.
-- OpenAI escalation when an API key is present and the local extractor finds no candidates; optional low-confidence escalation with `PHASE3_OPENAI_ESCALATION=true`.
-- Classifier node applies category normalization, client-link verification, confidence threshold, and pay-to-play review routing.
-- Review interrupt node writes uncertain records into the portal review queue.
-- Persist node writes approved/high-confidence records to `events` and refreshes matches.
-- Agent observability tab shows run history, graph traces, alerts, and dead letters.
+The Discovery agent runner is not part of the current product. The app does not expose a Run Agent button, agent tab, agent endpoint, or LangGraph runtime dependency. Source discovery currently runs through the Daily Refresh ingestion workflow and human review queue.
 
 ### Phase 4: Intelligence And Scale
 
@@ -131,22 +121,11 @@ Phase 4 closes the operating loop:
 7. Broad pages, missing links, blocked links, and low-confidence records go to Review or stay out of active inventory.
 8. Expired events are archived and matches recompute.
 
-### Phase 3 Agent Run
-
-1. Admin opens Agent.
-2. Admin clicks Run Agent or runs `npm run phase3:run`.
-3. Scout discovers in-domain opportunity links.
-4. Fetch node validates each URL with the same guardrails as Phase 2.
-5. Extractor parses candidate pages.
-6. Classifier approves high-confidence records and routes uncertain records to Review.
-7. Persist node writes approved records into Inventory.
-8. Admin reviews traces, alerts, dead letters, and review interrupts.
-
 ### Review Queue Approval
 
 1. Admin opens Review.
 2. Admin inspects low-confidence or policy-flagged opportunities.
-3. Approve writes a Phase 3 review payload into Inventory.
+3. Approve writes a reviewed opportunity payload into Inventory.
 4. Reject closes the review item and archives any linked event.
 5. Reopen returns a previously closed item to the open review queue.
 
@@ -158,9 +137,8 @@ Phase 4 closes the operating loop:
 - Inventory list shows added date for each opportunity.
 - Source registry setup imports the 45 workbook-backed EB-1A sources.
 - Phase 2 run can complete against the real source registry without saving broad source pages as active opportunities.
-- Phase 3 run can discover in-domain pages beyond the seed registry.
-- Phase 3 run creates graph traces.
-- Low-confidence Phase 3 records enter the review queue.
+- No Run Agent button or Discovery agent tab is visible.
+- `/api/agent/run` is not shipped.
 - Review approval writes an opportunity into Inventory.
 - Phase 4 hybrid match score includes semantic fit.
 - Phase 4 client portal preview renders coverage, gaps, top recommendations, and export status.

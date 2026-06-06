@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       "Client-facing criteria coverage preview",
       "Human-reviewed source curator proposals",
       "Discover evidence export packet",
-      "Local Postgres system of record with agent and ingestion audit trails",
+      "Local Postgres system of record with ingestion audit trails",
     ],
   });
 }

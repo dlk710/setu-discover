@@ -2,7 +2,7 @@
 
 ## What It Is
 
-Discover is an internal discovery workbench for finding profile-building opportunities that can support a client's evidence portfolio. The product helps the team move from manual research to structured, reviewable, agent-assisted discovery.
+Discover is an internal discovery workbench for finding profile-building opportunities that can support a client's evidence portfolio. The product helps the team move from manual research to structured, reviewable discovery.
 
 ## What It Helps The Team Do
 
@@ -12,7 +12,6 @@ Discover is an internal discovery workbench for finding profile-building opportu
 - Make sure only Finance-active clients receive new opportunity recommendations.
 - Email relevant opportunities to clients.
 - Refresh opportunities from trusted sources.
-- Let an agent discover new pages within approved source domains.
 - Route uncertain results to a human before they become client-facing recommendations.
 - Preview what a client would see: criteria coverage, open gaps, and recommended next actions.
 - Export a structured Discover evidence packet for a client/opportunity pair.
@@ -28,9 +27,9 @@ The team manually enters opportunities and clients, then matches and emails oppo
 
 The system checks trusted source pages every day or on demand. It skips pages that have not changed and extracts opportunity details from pages that did change.
 
-### Phase 3
+### Paused Agent Capability
 
-The system adds a constrained discovery agent. The agent can look inside approved domains, find new relevant pages, extract opportunities, and send uncertain cases to a human review queue.
+The Discovery agent runner is currently removed from the product. The team uses Daily Refresh to check trusted source pages and the Review queue to approve uncertain results.
 
 ### Phase 4
 
@@ -55,11 +54,11 @@ When a client is not active, or when the last Finance status is stale, Discover 
 
 ## What AI Does
 
-AI is optional and scoped. Phase 2 can use OpenAI structured extraction when changed source content needs parsing. Phase 3 runs local rule extraction first and can optionally escalate low-confidence records to OpenAI. Phase 4 semantic matching is deterministic and local by default. AI does not control login, CRUD, source allowlists, source approval, review approval, Evidence export usage, or email sending.
+AI is optional and scoped. Phase 2 can use OpenAI structured extraction when changed source content needs parsing. Phase 4 semantic matching is deterministic and local by default. AI does not control login, CRUD, source allowlists, source approval, review approval, Evidence export usage, or email sending.
 
 ## Review Queue Meaning
 
-The review queue is where the product asks a human to decide. Items appear when extraction confidence is low or a policy rule says the opportunity should not be automatically accepted. Approving a Phase 3 item puts it into the inventory. Rejecting it closes it out.
+The review queue is where the product asks a human to decide. Items appear when extraction confidence is low or a policy rule says the opportunity should not be automatically accepted. Approving an item puts it into the inventory. Rejecting it closes it out.
 
 ## Current Local Review Account
 

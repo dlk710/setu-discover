@@ -1,6 +1,6 @@
 # Discover
 
-Local Discover profile-discovery portal for operating opportunity inventory, client profiles, canonical source ingestion, agentic discovery, hybrid matching, client portal preview, evidence export, and email-out logging.
+Local Discover profile-discovery portal for operating opportunity inventory, client profiles, canonical source ingestion, hybrid matching, client portal preview, evidence export, and email-out logging.
 
 ## Run locally with Docker
 
@@ -54,18 +54,6 @@ npm run phase2:schedule
 
 The master EB-1A source list is normalized into `data/source-registry.json` from the provided workbook. `npm run db:setup` imports those 45 sources into PostgreSQL and archives the older local fixture opportunities. Refreshed records are not saved to active inventory unless they include a public, reachable client-facing source/apply link on the registry source domain.
 
-## Phase 3 local deployment
-
-Phase 3 adds constrained LangGraph orchestration with a scout node, guarded fetch node, extractor, classifier, portal-backed review interrupt, persistence node, run traces, alerts, and dead letters.
-
-Run one agentic discovery pass while the app is running:
-
-```bash
-npm run phase3:run
-```
-
-The local default uses the rule extractor first, then escalates to OpenAI when an API key is present and the local extractor finds no candidates. Phase 3 uses the same client-facing link verification before a discovered record can be persisted.
-
 ## Phase 4 product finish
 
 Phase 4 adds the intelligence and scale layer:
@@ -96,6 +84,10 @@ npm run finance:sync
 ```
 
 The Phase 2 scheduler also runs the Finance sync hourly when configured and forces a sync before the 06:00 discovery cycle. New opportunity pushes, match lists, client portal recommendations, and evidence exports fail closed unless the client is `active` with a status timestamp less than 24 hours old.
+
+## Paused agent capability
+
+The Discovery agent runner is intentionally removed from the current product. There is no `Run agent` button, no `/api/agent/run` endpoint, no `phase3:run` script, and no LangGraph runtime dependency. Use Daily Refresh for source-page ingestion and the Review queue for human disposition.
 
 ## Documentation
 

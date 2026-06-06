@@ -144,61 +144,6 @@ export type ReviewItem = {
   updated_at: string;
 };
 
-export type AgentRun = {
-  id: string;
-  status: string;
-  mode: string;
-  started_at: string;
-  finished_at: string | null;
-  checkpoint: Record<string, unknown>;
-  pages_discovered: number;
-  pages_checked: number;
-  events_upserted: number;
-  interruptions: number;
-  retries: number;
-  notes: string;
-  error: string;
-};
-
-export type AgentStep = {
-  id: string;
-  run_id: string;
-  node_name: string;
-  status: string;
-  input_summary: string;
-  output_summary: string;
-  decision: Record<string, unknown>;
-  created_at: string;
-};
-
-export type AgentDeadLetter = {
-  id: string;
-  run_id: string | null;
-  source_id: string | null;
-  source_name?: string | null;
-  page_url: string;
-  failure_key: string;
-  attempts: number;
-  reason: string;
-  last_error: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-};
-
-export type AgentAlert = {
-  id: string;
-  run_id: string | null;
-  source_id: string | null;
-  source_name?: string | null;
-  alert_type: string;
-  severity: string;
-  message: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-};
-
 export type MatchBreakdown = {
   criterionGap: number;
   credibility: number;

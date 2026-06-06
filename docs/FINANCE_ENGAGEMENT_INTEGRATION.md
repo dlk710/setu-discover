@@ -77,7 +77,6 @@ Guarded surfaces:
 - Match list API: `GET /api/matches`
 - Email push API: `POST /api/email/send`
 - Phase 2 recommendation recompute
-- Phase 3 recommendation recompute
 - Phase 4 client portal preview
 - Evidence export endpoints
 

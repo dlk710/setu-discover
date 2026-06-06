@@ -13,7 +13,6 @@ Discover is a local-first operating system for finding, qualifying, matching, se
 - Track source registry records from the EB-1A master source list.
 - Monitor source pages with fetched and changed timestamps.
 - Run guarded ingestion against canonical source domains.
-- Run a constrained LangGraph discovery agent.
 - Route uncertain, low-confidence, or policy-flagged records to review.
 - Approve or reject review items before records become client-facing.
 - Send or locally simulate recommendation emails.
@@ -57,13 +56,12 @@ Discover is a local-first operating system for finding, qualifying, matching, se
 - `npm run db:setup` imports 45 canonical sources.
 - The setup creates standing opportunities only for selected registry rows that are already client-action paths.
 - Old local fixture opportunities are archived and are not active.
-- Ingestion and agent discovery do not save broad source pages as active opportunities.
+- Ingestion does not save broad source pages as active opportunities.
 - A refreshed opportunity must have a public source/apply link on the canonical source domain before it can become active inventory.
 
 ## What AI Does
 
 - OpenAI extraction is optional for changed source content.
-- The Phase 3 agent uses deterministic extraction first and can escalate when configured.
 - Phase 4 matching uses local deterministic semantic scoring, not external embeddings by default.
 - AI does not automatically send emails, approve sources, approve review items, or bypass domain guardrails.
 - AI and matching cannot bypass the Finance engagement gate.
@@ -85,6 +83,12 @@ Discover is a local-first operating system for finding, qualifying, matching, se
 - Client communication.
 - Curator proposal approval.
 - Final evidence use inside downstream evidence records.
+
+## Paused Capability
+
+- The Discovery agent runner is removed from the current product.
+- There is no Run Agent button, agent tab, `/api/agent/run` endpoint, `phase3:run` script, or LangGraph dependency.
+- Daily Refresh remains the supported automated source refresh path.
 
 ## Local Review Entry Points
 

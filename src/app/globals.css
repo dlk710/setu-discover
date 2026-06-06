@@ -630,22 +630,6 @@ button {
   grid-template-columns: minmax(260px, 1.25fr) 1fr 96px 1fr 96px 128px;
 }
 
-.agent-run-grid {
-  grid-template-columns: 126px 100px 70px 92px 92px 78px 70px minmax(220px, 1.3fr);
-}
-
-.agent-step-grid {
-  grid-template-columns: 126px 132px 96px minmax(220px, 1.1fr) minmax(240px, 1.1fr);
-}
-
-.agent-alert-grid {
-  grid-template-columns: minmax(240px, 1.4fr) 92px 1fr;
-}
-
-.dead-letter-grid {
-  grid-template-columns: minmax(260px, 1.5fr) 86px 90px;
-}
-
 .compact-sheet {
   min-width: 620px;
 }
@@ -1259,10 +1243,6 @@ button {
   .run-grid,
   .ingestion-item-grid,
   .review-grid,
-  .agent-run-grid,
-  .agent-step-grid,
-  .agent-alert-grid,
-  .dead-letter-grid,
   .client-grid,
   .inventory-grid,
   .match-grid {

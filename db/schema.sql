@@ -230,60 +230,6 @@ CREATE TABLE IF NOT EXISTS review_items (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS agent_runs (
-  id TEXT PRIMARY KEY,
-  status TEXT NOT NULL DEFAULT 'running',
-  mode TEXT NOT NULL DEFAULT 'manual',
-  started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  finished_at TIMESTAMPTZ,
-  checkpoint JSONB NOT NULL DEFAULT '{}'::jsonb,
-  pages_discovered INTEGER NOT NULL DEFAULT 0,
-  pages_checked INTEGER NOT NULL DEFAULT 0,
-  events_upserted INTEGER NOT NULL DEFAULT 0,
-  interruptions INTEGER NOT NULL DEFAULT 0,
-  retries INTEGER NOT NULL DEFAULT 0,
-  notes TEXT NOT NULL DEFAULT '',
-  error TEXT NOT NULL DEFAULT ''
-);
-
-CREATE TABLE IF NOT EXISTS agent_steps (
-  id TEXT PRIMARY KEY,
-  run_id TEXT NOT NULL REFERENCES agent_runs(id) ON DELETE CASCADE,
-  node_name TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'completed',
-  input_summary TEXT NOT NULL DEFAULT '',
-  output_summary TEXT NOT NULL DEFAULT '',
-  decision JSONB NOT NULL DEFAULT '{}'::jsonb,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS agent_dead_letters (
-  id TEXT PRIMARY KEY,
-  run_id TEXT REFERENCES agent_runs(id) ON DELETE SET NULL,
-  source_id TEXT REFERENCES sources(id) ON DELETE SET NULL,
-  page_url TEXT NOT NULL,
-  failure_key TEXT NOT NULL,
-  attempts INTEGER NOT NULL DEFAULT 1,
-  reason TEXT NOT NULL DEFAULT '',
-  last_error TEXT NOT NULL DEFAULT '',
-  status TEXT NOT NULL DEFAULT 'open',
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (failure_key)
-);
-
-CREATE TABLE IF NOT EXISTS agent_alerts (
-  id TEXT PRIMARY KEY,
-  run_id TEXT REFERENCES agent_runs(id) ON DELETE SET NULL,
-  source_id TEXT REFERENCES sources(id) ON DELETE SET NULL,
-  alert_type TEXT NOT NULL,
-  severity TEXT NOT NULL DEFAULT 'medium',
-  message TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'open',
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
 CREATE INDEX IF NOT EXISTS idx_events_deadline ON events(deadline);
 CREATE INDEX IF NOT EXISTS idx_events_category ON events(category);
 CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(email);
@@ -292,7 +238,3 @@ CREATE INDEX IF NOT EXISTS idx_email_logs_client ON email_logs(client_id);
 CREATE INDEX IF NOT EXISTS idx_source_pages_source ON source_pages(source_id);
 CREATE INDEX IF NOT EXISTS idx_ingestion_items_run ON ingestion_items(run_id);
 CREATE INDEX IF NOT EXISTS idx_review_items_status ON review_items(status);
-CREATE INDEX IF NOT EXISTS idx_agent_runs_started ON agent_runs(started_at);
-CREATE INDEX IF NOT EXISTS idx_agent_steps_run ON agent_steps(run_id);
-CREATE INDEX IF NOT EXISTS idx_agent_dead_letters_status ON agent_dead_letters(status);
-CREATE INDEX IF NOT EXISTS idx_agent_alerts_status ON agent_alerts(status);

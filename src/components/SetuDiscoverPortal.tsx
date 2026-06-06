@@ -4,7 +4,6 @@ import {
   Archive,
   ArrowUpRight,
   Award,
-  Bot,
   BriefcaseBusiness,
   CheckCircle2,
   Clock3,
@@ -12,7 +11,6 @@ import {
   Edit3,
   FileText,
   Globe,
-  ListChecks,
   LinkIcon,
   LogOut,
   Mail,
@@ -29,10 +27,6 @@ import {
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { statusTone } from "@/lib/status";
 import type {
-  AgentAlert,
-  AgentDeadLetter,
-  AgentRun,
-  AgentStep,
   ClientRecord,
   EmailLog,
   EventRecord,
@@ -55,10 +49,6 @@ type AppState = {
   ingestionRuns: IngestionRun[];
   ingestionItems: IngestionItem[];
   reviewItems: ReviewItem[];
-  agentRuns: AgentRun[];
-  agentSteps: AgentStep[];
-  agentDeadLetters: AgentDeadLetter[];
-  agentAlerts: AgentAlert[];
   eventCategories: string[];
   criteriaTags: string[];
 };
@@ -72,7 +62,6 @@ const navItems = [
   { id: "emails", label: "Email log", icon: Mail },
   { id: "sources", label: "Source registry", icon: ShieldCheck },
   { id: "ingestion", label: "Daily refresh", icon: RefreshCw },
-  { id: "agent", label: "Discovery agent", icon: Bot },
   { id: "review", label: "Review queue", icon: Clock3 },
 ] as const;
 
@@ -396,7 +385,6 @@ export function SetuDiscoverPortal() {
   const [phase4Loading, setPhase4Loading] = useState(false);
   const [matchesLoading, setMatchesLoading] = useState(false);
   const [ingestionRunning, setIngestionRunning] = useState(false);
-  const [agentRunning, setAgentRunning] = useState(false);
   const [emailModal, setEmailModal] = useState<{
     match: MatchRecord;
     client: ClientRecord;
@@ -567,7 +555,6 @@ export function SetuDiscoverPortal() {
               {item.id === "inventory" ? <span className="badge">{state.events.length}</span> : null}
               {item.id === "clients" ? <span className="badge">{state.clients.length}</span> : null}
               {item.id === "review" ? <span className="badge">{state.reviewItems.filter((review) => review.status === "open").length}</span> : null}
-              {item.id === "agent" ? <span className="badge">{state.agentRuns.length}</span> : null}
             </button>
           );
         })}
@@ -605,7 +592,6 @@ export function SetuDiscoverPortal() {
               clients={state.clients}
               sources={state.sources}
               categories={state.eventCategories}
-              agentRuns={state.agentRuns}
               ingestionRuns={state.ingestionRuns}
               reviewItems={state.reviewItems}
               onGoInventory={() => setActiveTab("inventory")}
@@ -722,30 +708,6 @@ export function SetuDiscoverPortal() {
                   showToast(`Review item marked ${status}`);
                 } catch (error) {
                   showToast(error instanceof Error ? error.message : "Could not update review item");
-                }
-              }}
-            />
-          ) : null}
-          {activeTab === "agent" ? (
-            <AgentView
-              runs={state.agentRuns}
-              steps={state.agentSteps}
-              deadLetters={state.agentDeadLetters}
-              alerts={state.agentAlerts}
-              running={agentRunning}
-              onRun={async () => {
-                setAgentRunning(true);
-                try {
-                  const result = await requestJson<{ run: AgentRun }>("/api/agent/run", {
-                    method: "POST",
-                    body: JSON.stringify({ mode: "manual" }),
-                  });
-                  await refresh();
-                  showToast(result.run.status === "completed" ? "Phase 3 agent completed" : "Phase 3 agent failed");
-                } catch (error) {
-                  showToast(error instanceof Error ? error.message : "Phase 3 agent failed");
-                } finally {
-                  setAgentRunning(false);
                 }
               }}
             />
@@ -888,7 +850,6 @@ function DashboardView({
   clients,
   sources,
   categories,
-  agentRuns,
   ingestionRuns,
   reviewItems,
   onGoInventory,
@@ -899,7 +860,6 @@ function DashboardView({
   clients: ClientRecord[];
   sources: Source[];
   categories: string[];
-  agentRuns: AgentRun[];
   ingestionRuns: IngestionRun[];
   reviewItems: ReviewItem[];
   onGoInventory: () => void;
@@ -919,7 +879,6 @@ function DashboardView({
   );
   const openReviews = reviewItems.filter((item) => item.status === "open").length;
   const enabledSources = sources.filter((source) => source.status === "active" && source.refresh_enabled).length;
-  const latestAgent = agentRuns[0];
   const latestIngestion = ingestionRuns[0];
   const pushableClients = clients.filter(isClientPushable);
   const categoryRows = categories.map((category) => {
@@ -1080,7 +1039,7 @@ function DashboardView({
 
         <section className="section">
           <div className="section-head">
-            <h2>Last discovery run</h2>
+            <h2>Last refresh run</h2>
             <button className="btn btn-ghost" type="button" onClick={onGoReview}>
               <Clock3 size={15} />
               Review queue
@@ -1088,11 +1047,6 @@ function DashboardView({
           </div>
           <div className="card health-card">
             <HealthRow label="Refreshable sources" value={`${enabledSources}/${sources.length}`} note="Canonical allowlist sources" />
-            <HealthRow
-              label="Agent run"
-              value={latestAgent ? latestAgent.status : "none"}
-              note={latestAgent ? `${latestAgent.pages_checked} pages · ${latestAgent.interruptions} interrupts` : "No Phase 3 run yet"}
-            />
             <HealthRow
               label="Ingestion run"
               value={latestIngestion ? latestIngestion.status : "none"}
@@ -1993,183 +1947,6 @@ function IngestionView({
   );
 }
 
-function AgentView({
-  runs,
-  steps,
-  deadLetters,
-  alerts,
-  running,
-  onRun,
-}: {
-  runs: AgentRun[];
-  steps: AgentStep[];
-  deadLetters: AgentDeadLetter[];
-  alerts: AgentAlert[];
-  running: boolean;
-  onRun: () => Promise<void>;
-}) {
-  const latest = runs[0];
-  const openAlerts = alerts.filter((alert) => alert.status === "open").length;
-  const openDeadLetters = deadLetters.filter((item) => item.status === "open").length;
-
-  return (
-    <>
-      <section className="section">
-        <div className="section-head">
-          <h2>Phase 3 agent</h2>
-          <button className="btn btn-primary" type="button" disabled={running} onClick={() => void onRun()}>
-            <Bot size={15} />
-            {running ? "Running" : "Run agent"}
-          </button>
-        </div>
-        <div className="detail-banner phase2-banner">
-          <div>
-            <div className="card-label">Latest graph run</div>
-            <h2>{latest ? latest.status : "Not run yet"}</h2>
-            <div className="sub">
-              {latest
-                ? `${latest.pages_checked} checked, ${latest.pages_discovered} discovered, ${latest.interruptions} review interrupts, ${latest.events_upserted} upserted`
-                : "LangGraph scout, extractor, classifier, review interrupt, and persistence nodes are ready."}
-            </div>
-          </div>
-          <div className="phase2-stats">
-            <span className="chip">
-              <ListChecks size={14} />
-              {steps.length} traces
-            </span>
-            <span className="chip">
-              <TriangleAlert size={14} />
-              {openAlerts} alerts
-            </span>
-            <span className="chip">{openDeadLetters} dead letters</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="section-head">
-          <h2>Agent run history</h2>
-          <span className="chip">{runs.length} runs</span>
-        </div>
-        <div className="card sheet-wrap">
-          <div className="sheet">
-            <div className="trow head agent-run-grid">
-              <span>Started</span>
-              <span>Status</span>
-              <span>Pages</span>
-              <span>Discovered</span>
-              <span>Interrupts</span>
-              <span>Upserts</span>
-              <span>Retries</span>
-              <span>Notes</span>
-            </div>
-            {runs.map((run) => (
-              <div className="trow agent-run-grid" key={run.id}>
-                <span className="mono">{dateTimeText(run.started_at)}</span>
-                <span className={`pill ${run.status === "completed" ? "success" : run.status === "failed" ? "danger" : "ink"}`}>
-                  {run.status}
-                </span>
-                <span className="mono">{run.pages_checked}</span>
-                <span className="mono">{run.pages_discovered}</span>
-                <span className="mono">{run.interruptions}</span>
-                <span className="mono">{run.events_upserted}</span>
-                <span className="mono">{run.retries}</span>
-                <span className="sub">{run.error || run.notes}</span>
-              </div>
-            ))}
-            {!runs.length ? <div className="empty">No agent runs yet.</div> : null}
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="section-head">
-          <h2>Graph traces</h2>
-          <span className="chip">{steps.length} steps</span>
-        </div>
-        <div className="card sheet-wrap">
-          <div className="sheet">
-            <div className="trow head agent-step-grid">
-              <span>Time</span>
-              <span>Node</span>
-              <span>Status</span>
-              <span>Output</span>
-              <span>Decision</span>
-            </div>
-            {steps.map((step) => (
-              <div className="trow agent-step-grid" key={step.id}>
-                <span className="mono">{dateTimeText(step.created_at)}</span>
-                <span className="cust">{step.node_name}</span>
-                <span className={`pill ${step.status === "failed" ? "danger" : "success"}`}>{step.status}</span>
-                <span className="sub">{step.output_summary}</span>
-                <span className="sub">{JSON.stringify(step.decision)}</span>
-              </div>
-            ))}
-            {!steps.length ? <div className="empty">No graph traces yet.</div> : null}
-          </div>
-        </div>
-      </section>
-
-      <div className="two-col">
-        <section className="section">
-          <div className="section-head">
-            <h2>Alerts</h2>
-            <span className="chip">{openAlerts} open</span>
-          </div>
-          <div className="card sheet-wrap">
-            <div className="sheet compact-sheet">
-              <div className="trow head agent-alert-grid">
-                <span>Alert</span>
-                <span>Severity</span>
-                <span>Source</span>
-              </div>
-              {alerts.map((alert) => (
-                <div className="trow agent-alert-grid" key={alert.id}>
-                  <div>
-                    <div className="cust">{alert.alert_type}</div>
-                    <div className="sub">{alert.message}</div>
-                  </div>
-                  <span className={`pill ${alert.severity === "high" ? "danger" : "warn"}`}>{alert.severity}</span>
-                  <span>{alert.source_name ?? alert.source_id ?? "General"}</span>
-                </div>
-              ))}
-              {!alerts.length ? <div className="empty">No agent alerts.</div> : null}
-            </div>
-          </div>
-        </section>
-
-        <section className="section">
-          <div className="section-head">
-            <h2>Dead letters</h2>
-            <span className="chip">{openDeadLetters} open</span>
-          </div>
-          <div className="card sheet-wrap">
-            <div className="sheet compact-sheet">
-              <div className="trow head dead-letter-grid">
-                <span>Failure</span>
-                <span>Attempts</span>
-                <span>Status</span>
-              </div>
-              {deadLetters.map((item) => (
-                <div className="trow dead-letter-grid" key={item.id}>
-                  <div>
-                    <div className="cust">{item.reason}</div>
-                    <div className="sub">{item.page_url}</div>
-                    <div className="sub">{item.last_error}</div>
-                  </div>
-                  <span className="mono">{item.attempts}</span>
-                  <span className={`pill ${item.status === "open" ? "warn" : "success"}`}>{item.status}</span>
-                </div>
-              ))}
-              {!deadLetters.length ? <div className="empty">No dead letters.</div> : null}
-            </div>
-          </div>
-        </section>
-      </div>
-    </>
-  );
-}
-
 function ReviewQueueView({
   items,
   onStatus,
@@ -2703,7 +2480,6 @@ function topbarTitle(tab: TabId) {
     emails: "Email history",
     sources: "Source registry",
     ingestion: "Daily refresh",
-    agent: "Discovery agent",
     review: "Review queue",
   }[tab];
 }
@@ -2718,7 +2494,6 @@ function topbarSubtitle(tab: TabId) {
     emails: "Outbound attempts logged against the client record.",
     sources: "Canonical domains, seed pages, refresh status, and source-page change tracking.",
     ingestion: "Guarded fetch, change detection, structured extraction, review flags, and match refresh.",
-    agent: "Constrained LangGraph discovery, review interrupts, traces, alerts, and dead letters.",
     review: "Low-confidence extractions and pay-to-play flags ready for team disposition.",
   }[tab];
 }

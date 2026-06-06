@@ -2,10 +2,6 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { CRITERIA_TAGS, EVENT_CATEGORIES } from "@/lib/constants";
 import {
-  listAgentAlerts,
-  listAgentDeadLetters,
-  listAgentRuns,
-  listAgentSteps,
   listClients,
   listEmailLogs,
   listEvents,
@@ -29,10 +25,6 @@ export async function GET() {
     ingestionRuns,
     ingestionItems,
     reviewItems,
-    agentRuns,
-    agentSteps,
-    agentDeadLetters,
-    agentAlerts,
   ] = await Promise.all([
     listEvents(),
     listClients(),
@@ -42,10 +34,6 @@ export async function GET() {
     listIngestionRuns(),
     listIngestionItems(),
     listReviewItems(),
-    listAgentRuns(),
-    listAgentSteps(),
-    listAgentDeadLetters(),
-    listAgentAlerts(),
   ]);
 
   return NextResponse.json({
@@ -58,10 +46,6 @@ export async function GET() {
     ingestionRuns,
     ingestionItems,
     reviewItems,
-    agentRuns,
-    agentSteps,
-    agentDeadLetters,
-    agentAlerts,
     eventCategories: EVENT_CATEGORIES,
     criteriaTags: CRITERIA_TAGS,
   });

@@ -6,7 +6,6 @@
 - React client components
 - PostgreSQL 16
 - `pg` for database access
-- LangGraph JS for Phase 3 orchestration
 - Nodemailer for SMTP email
 - OpenAI Responses API optional for structured extraction
 - Local deterministic semantic scoring for Phase 4 hybrid matching
@@ -48,10 +47,6 @@ Core tables:
 - `ingestion_runs`
 - `ingestion_items`
 - `review_items`
-- `agent_runs`
-- `agent_steps`
-- `agent_dead_letters`
-- `agent_alerts`
 - `integration_sync_log`
   - Stores Finance sync received, matched, error, and run timestamp metadata.
 
@@ -135,36 +130,9 @@ Local script:
 npm run phase2:run
 ```
 
-## Phase 3 Agent
+## Paused Agent Runner
 
-Main module:
-
-```text
-src/lib/phase3-agent.ts
-```
-
-Graph nodes:
-
-- `scout`: reads active registry pages, fetches seeds, discovers in-domain opportunity links, and upserts discovered `source_pages`.
-- `fetch`: performs guarded fetch with retry and dead-letter handling.
-- `extractor`: extracts structured opportunities using local rule extraction first.
-- `classifier`: normalizes category, verifies client-facing links, clamps actionability, and applies confidence/policy routing.
-- `review_interrupt`: writes human-review items into `review_items`.
-- `persist`: writes approved opportunities into `events`, purges expired records, and recomputes recommendations.
-
-Recommendation recompute filters to Finance-active clients with fresh status.
-
-Run endpoint:
-
-```text
-POST /api/agent/run
-```
-
-Local script:
-
-```bash
-npm run phase3:run
-```
+The Discovery agent runner is intentionally not shipped in the current product. The codebase has no LangGraph dependency, no `src/lib/phase3-agent.ts`, no `POST /api/agent/run` route, and no `phase3:run` npm script. Daily Refresh remains the supported automated source ingestion path.
 
 ## Phase 4 Intelligence
 
@@ -227,7 +195,7 @@ PUT /api/review-items/[id]
 
 Supported statuses:
 
-- `approved`: upserts Phase 3 payload into `events`.
+- `approved`: upserts a reviewed opportunity payload into `events`.
 - `rejected`: closes item and archives linked event if one exists.
 - `open`: reopens item.
 
@@ -261,7 +229,6 @@ Optional:
 ```text
 OPENAI_API_KEY
 OPENAI_EXTRACTION_MODEL
-PHASE3_OPENAI_ESCALATION
 SMTP_HOST
 SMTP_PORT
 SMTP_USER
@@ -277,7 +244,6 @@ npm run db:setup
 npm run lint
 npm run build
 npm run phase2:run
-npm run phase3:run
 ```
 
 ## Git Hygiene
