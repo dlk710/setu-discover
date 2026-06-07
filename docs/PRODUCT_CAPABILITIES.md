@@ -1,16 +1,18 @@
-# Discover Product Capabilities
+# SETU Discover Opportunity Studio Product Capabilities
 
 ## What The Product Can Do Now
 
-Discover is a local-first operating system for finding, qualifying, matching, sending, and exporting EB-1A profile-building opportunities.
+SETU Discover Opportunity Studio is a local-first operating system for finding, qualifying, matching, sending, and exporting EB-1A profile-building opportunities.
 
 ## Core Operating Capabilities
 
 - Maintain a PostgreSQL-backed opportunity inventory.
+- Filter inventory by EB-1A opportunity category.
 - Show the date each opportunity was added to inventory for quick freshness review.
 - Maintain client profiles with target criteria, covered criteria, keywords, preferred categories, field, and location.
 - Store each client's Finance-owned engagement flag as active, dormant, inactive, or unknown.
 - Track source registry records from the EB-1A master source list.
+- Add canonical sources with predefined registry categories and multiple applicability tags.
 - Monitor source pages with fetched and changed timestamps.
 - Run guarded ingestion against canonical source domains.
 - Route uncertain, low-confidence, or policy-flagged records to review.
@@ -18,6 +20,8 @@ Discover is a local-first operating system for finding, qualifying, matching, se
 - Send or locally simulate recommendation emails.
 - Log email attempts against clients and opportunities.
 - Block opportunity pushes unless the client is Finance-active with fresh status.
+- Search clients inside Match & Send before reviewing AI-ranked or manually selected opportunities.
+- Search active opportunities in Match & Send and manually push a chosen opportunity through the same gated email workflow.
 - Archive stale or unsuitable opportunities.
 
 ## Phase 4 Intelligence Capabilities

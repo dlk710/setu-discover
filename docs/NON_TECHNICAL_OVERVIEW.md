@@ -1,21 +1,25 @@
-# Discover Nontechnical Overview
+# SETU Discover Opportunity Studio Nontechnical Overview
 
 ## What It Is
 
-Discover is an internal discovery workbench for finding profile-building opportunities that can support a client's evidence portfolio. The product helps the team move from manual research to structured, reviewable discovery.
+SETU Discover Opportunity Studio is an internal discovery workbench for finding profile-building opportunities that can support a client's evidence portfolio. The product helps the team move from manual research to structured, reviewable discovery.
 
 ## What It Helps The Team Do
 
 - Keep a single inventory of awards, judging panels, press opportunities, speaking calls, and similar profile-building records.
+- Filter that inventory by EB-1A category for faster review.
 - Keep client profile priorities in one place.
+- Search clients quickly from the Match & Send workflow.
 - Match clients to opportunities using visible scoring.
+- Search for a specific opportunity and manually send it to a selected client.
 - Make sure only Finance-active clients receive new opportunity recommendations.
 - Email relevant opportunities to clients.
 - Refresh opportunities from trusted sources.
 - Route uncertain results to a human before they become client-facing recommendations.
 - Preview what a client would see: criteria coverage, open gaps, and recommended next actions.
-- Export a structured Discover evidence packet for a client/opportunity pair.
+- Export a structured SETU Discover Opportunity Studio evidence packet for a client/opportunity pair.
 - Review proposed new sources before they enter the trusted registry.
+- Add source applicability tags from predefined EB-1A categories.
 
 ## How The Phases Work
 
@@ -40,6 +44,15 @@ The system adds the intelligence layer: hybrid semantic matching, client portal 
 Discover reads one status flag from Setu Finance: active, dormant, inactive, or unknown. Finance owns the rule behind that flag. Discover does not see payment amounts or connect to Finance's database.
 
 When a client is not active, or when the last Finance status is stale, Discover hides new recommendations and blocks outbound opportunity emails. Admins can still see the client profile and the engagement badge.
+
+Status meaning:
+
+| Status | Finance portal | Discover portal |
+| --- | --- | --- |
+| Active | Customer is eligible under Finance-owned engagement rules. | Pushes are allowed only if the timestamp is fresh. |
+| Dormant | Customer is present but not currently active for new outreach. | New recommendations and sends are blocked. |
+| Inactive | Customer is not eligible for current engagement activity. | New recommendations, sends, and exports are blocked. |
+| Unknown | Discover has no confirmed Finance status yet. | The client remains non-pushable until Finance confirms fresh active status. |
 
 ## What Humans Still Control
 

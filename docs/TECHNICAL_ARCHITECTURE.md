@@ -1,4 +1,4 @@
-# Discover Technical Architecture
+# SETU Discover Opportunity Studio Technical Architecture
 
 ## Stack
 

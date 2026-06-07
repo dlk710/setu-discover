@@ -208,9 +208,9 @@ export function buildEvidenceExport(client: ClientRecord, event: EventRecord, ma
     },
     operating_next_steps: [
       "Confirm current eligibility and submission cycle on the source site.",
-      "Send client recommendation from Discover.",
+      "Send client recommendation from SETU Discover Opportunity Studio.",
       "Track application outcome.",
-      "After completion, attach proof artifacts to the Discover evidence record.",
+      "After completion, attach proof artifacts to the SETU Discover Opportunity Studio evidence record.",
     ],
   };
 }

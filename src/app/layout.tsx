@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Discover",
-  description: "Opportunity discovery portal for profile building.",
+  title: "SETU Discover Opportunity Studio",
+  description: "Opportunity studio for SETU profile building.",
 };
 
 export default function RootLayout({

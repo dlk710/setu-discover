@@ -25,6 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { scoreMatch } from "@/lib/matching";
 import { statusTone } from "@/lib/status";
 import type {
   ClientRecord,
@@ -66,6 +67,66 @@ const navItems = [
 ] as const;
 
 type TabId = (typeof navItems)[number]["id"];
+
+const PORTAL_BRAND = "SETU Discover Opportunity Studio";
+const PORTAL_SHORT_BRAND = "SETU Discover";
+const PORTAL_STUDIO_LABEL = "Opportunity Studio";
+
+const tabPathById: Record<TabId, string> = {
+  dashboard: "/",
+  inventory: "/inventory",
+  clients: "/clients",
+  matches: "/match-send",
+  phase4: "/intelligence",
+  emails: "/email-log",
+  sources: "/source-registry",
+  ingestion: "/daily-refresh",
+  review: "/review-queue",
+};
+
+const tabIdByPath: Record<string, TabId> = {
+  "/": "dashboard",
+  "/dashboard": "dashboard",
+  "/inventory": "inventory",
+  "/clients": "clients",
+  "/match-send": "matches",
+  "/matches": "matches",
+  "/intelligence": "phase4",
+  "/phase4": "phase4",
+  "/email-log": "emails",
+  "/emails": "emails",
+  "/source-registry": "sources",
+  "/sources": "sources",
+  "/daily-refresh": "ingestion",
+  "/ingestion": "ingestion",
+  "/review-queue": "review",
+  "/review": "review",
+};
+
+function tabFromPathname(pathname: string): TabId {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  return tabIdByPath[normalized] ?? "dashboard";
+}
+
+const sourceRegistryCategoryOptions = [
+  "Awards & Nominations",
+  "Judging",
+  "Media & Interview",
+  "Authorship",
+  "Speaking",
+  "Memberships & Fellowships",
+  "Exhibitions & Showcases",
+  "Editorial / Board / Leadership",
+];
+
+const sourceApplicabilityTags = [
+  ...sourceRegistryCategoryOptions,
+  "Published Material",
+  "Original Contributions",
+  "Leading/Critical Role",
+  "High Salary",
+  "Commercial Success",
+];
 
 type EventForm = {
   title: string;
@@ -167,6 +228,22 @@ async function requestJson<T>(url: string, options?: RequestInit): Promise<T> {
 
 function listText(values: string[]) {
   return values.filter(Boolean).join(", ");
+}
+
+function listItems(value: string) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function toggleListItem(value: string, item: string) {
+  const items = listItems(value);
+  const lower = item.toLowerCase();
+  const exists = items.some((current) => current.toLowerCase() === lower);
+  return exists
+    ? items.filter((current) => current.toLowerCase() !== lower).join(", ")
+    : [...items, item].join(", ");
 }
 
 function money(event: EventRecord) {
@@ -367,13 +444,72 @@ function EngagementBadge({
   );
 }
 
+function EngagementStatusLegend() {
+  const rows: Array<{
+    status: ClientRecord["engagement_status"];
+    finance: string;
+    discover: string;
+  }> = [
+    {
+      status: "active",
+      finance: "Customer is currently eligible under Finance-owned engagement rules.",
+      discover: "Pushable only when the Finance timestamp is fresh within 24 hours.",
+    },
+    {
+      status: "dormant",
+      finance: "Customer exists in Finance but is not currently active for new outreach.",
+      discover: "Not pushable. Admins can view the profile, but new opportunity sends are blocked.",
+    },
+    {
+      status: "inactive",
+      finance: "Customer is not eligible for current engagement activity.",
+      discover: "Not pushable. Match lists, client recommendations, sends, and exports fail closed.",
+    },
+    {
+      status: "unknown",
+      finance: "No confirmed Finance status has reached Discover yet.",
+      discover: "Not pushable until a Finance sync or webhook confirms an active fresh status.",
+    },
+  ];
+
+  return (
+    <div className="card status-legend-card">
+      <div className="status-legend-head">
+        <div>
+          <div className="card-label">Customer status meaning</div>
+          <h3>Finance flag and Discover behavior</h3>
+        </div>
+        <span className="chip">No amount data</span>
+      </div>
+      <div className="status-legend-grid">
+        {rows.map((row) => (
+          <div className="status-legend-row" key={row.status}>
+            <span className={`pill ${engagementTone(row.status)}`}>{row.status}</span>
+            <div>
+              <div className="status-label">Finance portal</div>
+              <div className="sub">{row.finance}</div>
+            </div>
+            <div>
+              <div className="status-label">Discover portal</div>
+              <div className="sub">{row.discover}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function SetuDiscoverPortal() {
   const [state, setState] = useState<AppState | null>(null);
   const [loading, setLoading] = useState(true);
   const [loginError, setLoginError] = useState("");
   const [toast, setToast] = useState("");
-  const [activeTab, setActiveTab] = useState<TabId>("dashboard");
+  const [activeTab, setActiveTab] = useState<TabId>(() =>
+    typeof window === "undefined" ? "dashboard" : tabFromPathname(window.location.pathname),
+  );
   const [inventorySearch, setInventorySearch] = useState("");
+  const [inventoryCategory, setInventoryCategory] = useState("all");
   const [clientSearch, setClientSearch] = useState("");
   const [eventModal, setEventModal] = useState<{ event?: EventRecord } | null>(null);
   const [clientModal, setClientModal] = useState<{ client?: ClientRecord } | null>(null);
@@ -430,6 +566,21 @@ export function SetuDiscoverPortal() {
     void refresh();
   }, []);
 
+  const navigateToTab = useCallback((tab: TabId) => {
+    setActiveTab(tab);
+    if (typeof window === "undefined") return;
+    const nextPath = tabPathById[tab];
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({ tab }, "", nextPath);
+    }
+  }, []);
+
+  useEffect(() => {
+    const onPopState = () => setActiveTab(tabFromPathname(window.location.pathname));
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
   useEffect(() => {
     if (!selectedClientId) {
       setMatches([]);
@@ -467,14 +618,16 @@ export function SetuDiscoverPortal() {
   }, [activeTab, selectedClientId, state?.events.length, state?.sources.length, clientEngagementKey, refreshPhase4]);
 
   const filteredEvents = useMemo(() => {
-    const query = inventorySearch.toLowerCase();
-    return (state?.events ?? []).filter((event) =>
-      [event.title, event.category, event.field, event.location, event.summary]
+    const query = inventorySearch.trim().toLowerCase();
+    return (state?.events ?? []).filter((event) => {
+      const matchesCategory = inventoryCategory === "all" || event.category === inventoryCategory;
+      const matchesQuery = [event.title, event.category, event.field, event.location, event.summary]
         .join(" ")
         .toLowerCase()
-        .includes(query),
-    );
-  }, [state, inventorySearch]);
+        .includes(query);
+      return matchesCategory && matchesQuery;
+    });
+  }, [state, inventorySearch, inventoryCategory]);
 
   const filteredClients = useMemo(() => {
     const query = clientSearch.toLowerCase();
@@ -523,7 +676,7 @@ export function SetuDiscoverPortal() {
   };
 
   if (loading) {
-    return <div className="empty">Loading Discover...</div>;
+    return <div className="empty">Loading {PORTAL_SHORT_BRAND}...</div>;
   }
 
   if (!state) {
@@ -535,8 +688,8 @@ export function SetuDiscoverPortal() {
       <aside className="sidebar">
         <div className="logo-wrap">
           <div className="wordmark">
-            <span className="letters">Discover</span>
-            <span className="brand-sub">Opportunity studio</span>
+            <span className="letters">{PORTAL_SHORT_BRAND}</span>
+            <span className="brand-sub">{PORTAL_STUDIO_LABEL}</span>
             <span className="deck" />
           </div>
         </div>
@@ -547,7 +700,7 @@ export function SetuDiscoverPortal() {
             <button
               className={`nav-item ${activeTab === item.id ? "active" : ""}`}
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => navigateToTab(item.id)}
               type="button"
             >
               <Icon size={16} />
@@ -561,7 +714,7 @@ export function SetuDiscoverPortal() {
         <div className="sidebar-foot">
           <div className="chip">
             <CheckCircle2 size={14} />
-            Discover ready
+            Studio ready
           </div>
           <div style={{ marginTop: 8 }}>{state.user.name}</div>
         </div>
@@ -594,9 +747,9 @@ export function SetuDiscoverPortal() {
               categories={state.eventCategories}
               ingestionRuns={state.ingestionRuns}
               reviewItems={state.reviewItems}
-              onGoInventory={() => setActiveTab("inventory")}
-              onGoClients={() => setActiveTab("clients")}
-              onGoReview={() => setActiveTab("review")}
+              onGoInventory={() => navigateToTab("inventory")}
+              onGoClients={() => navigateToTab("clients")}
+              onGoReview={() => navigateToTab("review")}
             />
           ) : null}
 
@@ -604,8 +757,11 @@ export function SetuDiscoverPortal() {
             <InventoryView
               events={filteredEvents}
               sources={state.sources}
+              categories={state.eventCategories}
               query={inventorySearch}
+              selectedCategory={inventoryCategory}
               onQuery={setInventorySearch}
+              onCategory={setInventoryCategory}
               onNew={() => setEventModal({})}
               onEdit={(event) => setEventModal({ event })}
               onArchive={async (event) => {
@@ -634,6 +790,7 @@ export function SetuDiscoverPortal() {
           {activeTab === "matches" ? (
             <MatchesView
               clients={state.clients}
+              events={state.events}
               selectedClientId={selectedClientId}
               selectedClient={selectedClient}
               matches={matches}
@@ -802,8 +959,8 @@ function LoginShell({
     <div className="auth-shell">
       <div className="auth-grid">
         <section className="auth-hero">
-          <div className="auth-kicker">Profile build</div>
-          <h1>Discover</h1>
+          <div className="auth-kicker">Setu profile build</div>
+          <h1>{PORTAL_BRAND}</h1>
           <p className="auth-copy">
             Inventory, client profile coverage, transparent matching, and team email logging on a local database.
           </p>
@@ -825,7 +982,7 @@ function LoginShell({
         <form className="auth-card" onSubmit={onLogin}>
           <div className="card-label">Team login</div>
           <h2>Sign in</h2>
-          <p className="auth-note">Use the local review account for Discover.</p>
+          <p className="auth-note">Use the local review account for {PORTAL_SHORT_BRAND}.</p>
           <div className="field">
             <label htmlFor="email">Email</label>
             <input id="email" name="email" type="email" defaultValue="admin@discover.local" />
@@ -1105,7 +1262,7 @@ function Metric({
         {label}
       </div>
       <div className="value">{value}</div>
-      <div className="delta">{detail ?? "Discover record"}</div>
+      <div className="delta">{detail ?? "Studio record"}</div>
     </div>
   );
 }
@@ -1113,16 +1270,22 @@ function Metric({
 function InventoryView({
   events,
   sources,
+  categories,
   query,
+  selectedCategory,
   onQuery,
+  onCategory,
   onNew,
   onEdit,
   onArchive,
 }: {
   events: EventRecord[];
   sources: Source[];
+  categories: string[];
   query: string;
+  selectedCategory: string;
   onQuery: (value: string) => void;
+  onCategory: (value: string) => void;
   onNew: () => void;
   onEdit: (event: EventRecord) => void;
   onArchive: (event: EventRecord) => void;
@@ -1140,15 +1303,27 @@ function InventoryView({
         <Search size={16} color="var(--text-3)" />
         <input
           className="search-input"
+          type="search"
           value={query}
           onChange={(event) => onQuery(event.target.value)}
           placeholder="Search inventory"
         />
+        <select
+          aria-label="Filter inventory by EB-1A category"
+          className="search-input category-filter"
+          value={selectedCategory}
+          onChange={(event) => onCategory(event.target.value)}
+        >
+          <option value="all">All EB-1A categories</option>
+          {categories.map((category) => (
+            <option key={category} value={category}>{category}</option>
+          ))}
+        </select>
         <span className="chip">{events.length} records</span>
         <span className="chip">{sources.length} sources</span>
       </div>
       <InfoNote>
-        Use Details to inspect the opportunity, then open official apply and source links from the host site.
+        Filter by EB-1A category, use Details to inspect the opportunity, then open official apply and source links from the host site.
       </InfoNote>
       <div className="card sheet-wrap">
         <div className="sheet">
@@ -1242,6 +1417,7 @@ function ClientsView({
       <InfoNote>
         Target versus covered criteria drives the matching priority for each client.
       </InfoNote>
+      <EngagementStatusLegend />
       <div className="card sheet-wrap">
         <div className="sheet">
           <div className="trow head client-grid">
@@ -1288,6 +1464,7 @@ function ClientsView({
 
 function MatchesView({
   clients,
+  events,
   selectedClientId,
   selectedClient,
   matches,
@@ -1297,6 +1474,7 @@ function MatchesView({
   onCompose,
 }: {
   clients: ClientRecord[];
+  events: EventRecord[];
   selectedClientId: string;
   selectedClient: ClientRecord | null;
   matches: MatchRecord[];
@@ -1305,21 +1483,78 @@ function MatchesView({
   onSelectClient: (clientId: string) => void;
   onCompose: (match: MatchRecord, client: ClientRecord) => void;
 }) {
+  const [clientQuery, setClientQuery] = useState("");
+  const [manualQuery, setManualQuery] = useState("");
+  const clientQueryText = clientQuery.trim().toLowerCase();
+  const manualQueryText = manualQuery.trim().toLowerCase();
+  const canPush = Boolean(selectedClient && eligibility?.pushable);
+  const clientOptions = useMemo(() => {
+    const filtered = clients.filter((client) =>
+      [client.name, client.email, client.field, client.location, client.keywords.join(" ")]
+        .join(" ")
+        .toLowerCase()
+        .includes(clientQueryText),
+    );
+    if (selectedClient && !filtered.some((client) => client.id === selectedClient.id)) {
+      return [selectedClient, ...filtered];
+    }
+    return filtered;
+  }, [clients, clientQueryText, selectedClient]);
+  const manualMatches = useMemo(() => {
+    if (!selectedClient || manualQueryText.length < 2) return [];
+    return events
+      .filter((event) => !["Expired", "Inactive"].includes(event.derived_status))
+      .filter((event) => {
+        const haystack = [
+          event.title,
+          event.summary,
+          event.category,
+          event.source_name ?? "",
+          event.field,
+          event.location,
+          event.criteria_tags.join(" "),
+          event.keywords.join(" "),
+        ].join(" ").toLowerCase();
+        return haystack.includes(manualQueryText);
+      })
+      .map((event) => {
+        const breakdown = scoreMatch(selectedClient, event);
+        return {
+          event,
+          score: breakdown.total,
+          breakdown,
+        };
+      })
+      .sort((left, right) => right.score - left.score)
+      .slice(0, 12);
+  }, [events, manualQueryText, selectedClient]);
+
   return (
     <section className="section">
       <div className="section-head">
         <h2>Match & send</h2>
         <span className="chip">
           <Sparkles size={14} />
-          Rank then email
+          AI match + manual push
         </span>
       </div>
       <div className="toolbar">
+        <div className="search-field client-search-field">
+          <Search size={15} />
+          <input
+            className="search-input"
+            type="search"
+            value={clientQuery}
+            onChange={(event) => setClientQuery(event.target.value)}
+            placeholder="Search clients by name, email, field, or keyword"
+          />
+        </div>
         <select className="search-input" value={selectedClientId} onChange={(event) => onSelectClient(event.target.value)}>
-          {clients.map((client) => (
+          {clientOptions.map((client) => (
             <option key={client.id} value={client.id}>{client.name}</option>
           ))}
         </select>
+        <span className="chip">{clientOptions.length} clients</span>
       </div>
       {selectedClient ? (
         <div className="detail-banner" style={{ marginBottom: 14 }}>
@@ -1389,6 +1624,68 @@ function MatchesView({
           ))}
         </div>
       </div>
+      <div className="card manual-search-card">
+        <div className="manual-search-head">
+          <div>
+            <div className="card-label">Manual opportunity push</div>
+            <h3>Search active inventory</h3>
+            <div className="sub">Find a specific opportunity, review the same fit score, then email it to the selected client.</div>
+          </div>
+          <span className="chip">{manualMatches.length} results</span>
+        </div>
+        <div className="toolbar manual-search-toolbar">
+          <div className="search-field">
+            <Search size={15} />
+            <input
+              className="search-input"
+              type="search"
+              value={manualQuery}
+              onChange={(event) => setManualQuery(event.target.value)}
+              placeholder="Search title, category, source, criteria, or keyword"
+            />
+          </div>
+        </div>
+        {manualQueryText.length < 2 ? (
+          <div className="empty">Search at least 2 characters to manually find opportunities for this client.</div>
+        ) : null}
+        {manualQueryText.length >= 2 && manualMatches.length === 0 ? (
+          <div className="empty">No active opportunities match that search.</div>
+        ) : null}
+        {manualMatches.length ? (
+          <div className="manual-results">
+            {manualMatches.map((match) => (
+              <div className="manual-result" key={match.event.id}>
+                <div>
+                  <div className="cust">{match.event.title}</div>
+                  <div className="sub">{match.event.summary}</div>
+                  <div className="tag-cloud" style={{ marginTop: 8 }}>
+                    <span className="pill">{match.event.category}</span>
+                    <span className="pill">T{match.event.credibility_tier}</span>
+                    <span className="pill">{match.event.derived_status}</span>
+                  </div>
+                </div>
+                <div className="manual-score">
+                  <span className="score">{match.score}</span>
+                  <span className="sub">{match.breakdown.missingCriteria.join(", ") || "General profile fit"}</span>
+                </div>
+                <div className="manual-actions">
+                  <button
+                    className="btn btn-primary send-action"
+                    type="button"
+                    disabled={!canPush}
+                    title={canPush ? "Email this opportunity" : eligibility?.reason ?? "Select an active client"}
+                    onClick={() => selectedClient && onCompose(match, selectedClient)}
+                  >
+                    <Send size={16} strokeWidth={1.9} />
+                    Email
+                  </button>
+                  {!canPush ? <div className="sub">{eligibility?.reason ?? "Select a client first"}</div> : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }
@@ -1426,7 +1723,7 @@ function Phase4View({
     <>
       <section className="section">
         <div className="section-head">
-          <h2>Discover intelligence</h2>
+          <h2>Studio intelligence</h2>
           <button className="btn btn-ghost" type="button" onClick={onRefresh} disabled={loading}>
             <RefreshCw size={15} />
             Refresh
@@ -1468,7 +1765,7 @@ function Phase4View({
             <span className="chip">{portal?.client?.name ?? "No client"}</span>
           </div>
           <div className="card phase4-panel">
-            {loading ? <div className="empty">Loading Discover intelligence...</div> : null}
+            {loading ? <div className="empty">Loading studio intelligence...</div> : null}
             {!loading && portal?.client ? (
               <>
                 <div className="detail-banner compact-banner">
@@ -2221,10 +2518,28 @@ function SourceModal({
             <FieldInput label="Registry rank" value={form.registry_rank} onChange={(value) => update("registry_rank", value)} placeholder="1" />
           </div>
           <div className="field-row">
-            <FieldInput label="Registry category" value={form.source_category} onChange={(value) => update("source_category", value)} />
+            <div className="field">
+              <label htmlFor="source-registry-category">Registry category</label>
+              <select
+                id="source-registry-category"
+                value={form.source_category}
+                onChange={(event) => update("source_category", event.target.value)}
+              >
+                <option value="">Select source category</option>
+                {sourceRegistryCategoryOptions.map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
             <FieldInput label="Typical fee" value={form.typical_fee} onChange={(value) => update("typical_fee", value)} />
           </div>
-          <FieldInput label="EB-1A criteria tags" value={form.criteria_tags} onChange={(value) => update("criteria_tags", value)} placeholder="Awards, Judging" />
+          <FieldInput label="Applicable EB-1A tags" value={form.criteria_tags} onChange={(value) => update("criteria_tags", value)} placeholder="Awards & Nominations, Judging" />
+          <PresetTagPicker
+            label="Predefined source applicability"
+            selectedText={form.criteria_tags}
+            values={sourceApplicabilityTags}
+            onToggle={(value) => update("criteria_tags", toggleListItem(form.criteria_tags, value))}
+          />
           <div className="field-row">
             <FieldInput label="Canonical domain" value={form.canonical_domain} onChange={(value) => update("canonical_domain", value)} required />
             <FieldSelect label="Credibility tier" value={form.credibility_tier} values={["1", "2", "3"]} onChange={(value) => update("credibility_tier", value)} />
@@ -2258,6 +2573,40 @@ function SourceModal({
   );
 }
 
+function PresetTagPicker({
+  label,
+  selectedText,
+  values,
+  onToggle,
+}: {
+  label: string;
+  selectedText: string;
+  values: string[];
+  onToggle: (value: string) => void;
+}) {
+  const selected = new Set(listItems(selectedText).map((item) => item.toLowerCase()));
+  return (
+    <div className="field preset-tag-field">
+      <label>{label}</label>
+      <div className="preset-tag-grid">
+        {values.map((value) => {
+          const active = selected.has(value.toLowerCase());
+          return (
+            <button
+              className={`preset-tag ${active ? "active" : ""}`}
+              key={value}
+              type="button"
+              onClick={() => onToggle(value)}
+            >
+              {value}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function EmailModal({
   client,
   match,
@@ -2280,7 +2629,7 @@ function EmailModal({
     match.event.apply_url ? `Apply link: ${match.event.apply_url}` : "",
     "",
     "Best,",
-    "Discover team",
+    "SETU Discover team",
   ].filter(Boolean).join("\n");
 
   const [subject, setSubject] = useState(defaultSubject);
@@ -2472,11 +2821,11 @@ function FieldTextarea({
 
 function topbarTitle(tab: TabId) {
   return {
-    dashboard: "Discover overview",
+    dashboard: PORTAL_BRAND,
     inventory: "Inventory table",
     clients: "Client profile database",
     matches: "Match & send",
-    phase4: "Discover intelligence",
+    phase4: "Studio intelligence",
     emails: "Email history",
     sources: "Source registry",
     ingestion: "Daily refresh",

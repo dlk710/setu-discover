@@ -1,6 +1,6 @@
-# Discover
+# SETU Discover Opportunity Studio
 
-Local Discover profile-discovery portal for operating opportunity inventory, client profiles, canonical source ingestion, hybrid matching, client portal preview, evidence export, and email-out logging.
+Local SETU Discover Opportunity Studio for operating opportunity inventory, client profiles, canonical source ingestion, hybrid matching, client portal preview, evidence export, and email-out logging.
 
 ## Run locally with Docker
 
@@ -9,6 +9,17 @@ docker compose up --build
 ```
 
 Open `http://localhost:3004`.
+
+Section URLs update as admins move through the portal, so browser back/forward works and direct links can be opened:
+
+- `/inventory`
+- `/clients`
+- `/match-send`
+- `/intelligence`
+- `/email-log`
+- `/source-registry`
+- `/daily-refresh`
+- `/review-queue`
 
 Demo users:
 
@@ -61,7 +72,7 @@ Phase 4 adds the intelligence and scale layer:
 - Hybrid heuristic plus semantic matching.
 - Client portal preview for criteria coverage and ranked recommendations.
 - Curator proposals for new source registry additions.
-- Discover evidence export JSON for client/opportunity packets.
+- SETU Discover Opportunity Studio evidence export JSON for client/opportunity packets.
 - Vetted standing opportunities from the EB-1A master registry so active inventory contains real client-action paths, not fake fixtures.
 - Inventory added-date visibility so the team can scan when each opportunity entered the active record set.
 

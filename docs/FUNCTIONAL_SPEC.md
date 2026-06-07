@@ -1,8 +1,8 @@
-# Discover Functional Specification
+# SETU Discover Opportunity Studio Functional Specification
 
 ## Purpose
 
-Discover helps the Discover team find, qualify, match, review, and send profile-building opportunities for clients. The product is local-first, PostgreSQL-backed, and organized around one durable inventory spine: the `events` table.
+SETU Discover Opportunity Studio helps the SETU Discover team find, qualify, match, review, and send profile-building opportunities for clients. The product is local-first, PostgreSQL-backed, and organized around one durable inventory spine: the `events` table.
 
 ## Users
 
@@ -19,10 +19,14 @@ Phase 1 gives the team a working local portal:
 - Login for admin/team users.
 - Inventory CRUD for opportunities.
 - Inventory list visibility for the date an opportunity was added.
+- Inventory filtering by EB-1A opportunity category.
 - Client profile CRUD.
 - Client engagement badge sourced from Setu Finance.
+- Customer status legend that explains Finance-side meaning and Discover-side push behavior.
 - Deterministic status from deadline and archive state.
 - Transparent matching score by criteria gap, credibility, keyword fit, actionability, and location.
+- Match & Send includes manual active-inventory search so admins can push a specific opportunity even when they do not want to use the ranked queue.
+- Match & Send includes client search by name, email, field, location, or keyword.
 - Email compose/send flow with local logging fallback when SMTP is absent.
 - Email and recommendation pushes fail closed unless the selected client is Finance-active with a fresh engagement timestamp.
 - PostgreSQL persistence.
@@ -32,6 +36,7 @@ Phase 1 gives the team a working local portal:
 Phase 2 adds deterministic source ingestion:
 
 - Admin-managed source registry with canonical domain, credibility tier, seed URL, status, refresh flag, and notes.
+- Canonical source creation uses predefined registry categories and multi-select EB-1A applicability tags.
 - Workbook-backed EB-1A master registry with organization, registry category, criteria tags, typical fee, and source rank.
 - Source page monitor with fetched/changed timestamps.
 - Domain-guarded fetch against allowlisted canonical domains.
@@ -63,21 +68,23 @@ Phase 4 closes the operating loop:
 ### Manual Opportunity Entry
 
 1. Admin opens Inventory.
-2. Admin scans title, category, fee, credibility, status, added date, deadline, source, and actions.
-3. Admin creates or edits an opportunity.
-4. Required data includes title, category, credibility, summary, and actionability.
-5. Optional data includes fee, source/apply links, criteria tags, keywords, field, and location.
-6. Saved opportunity becomes eligible for matching.
+2. Admin filters by EB-1A category or searches the full inventory.
+3. Admin scans title, category, fee, credibility, status, added date, deadline, source, and actions.
+4. Admin creates or edits an opportunity.
+5. Required data includes title, category, credibility, summary, and actionability.
+6. Optional data includes fee, source/apply links, criteria tags, keywords, field, and location.
+7. Saved opportunity becomes eligible for matching.
 
 ### Client Matching
 
 1. Admin opens Match.
-2. Admin selects a client.
+2. Admin searches for and selects a client.
 3. System checks the client's Finance engagement status.
 4. Dormant, inactive, unknown, or stale clients receive no new opportunity list.
 5. Active clients receive ranked active opportunities using hybrid deterministic scoring.
-6. Admin reviews score evidence and sends email.
-7. Email is logged whether SMTP sends it or local fallback simulates it.
+6. Admin can also search active inventory manually for a specific opportunity.
+7. Admin reviews score evidence and sends email.
+8. Email is logged whether SMTP sends it or local fallback simulates it.
 
 ### Finance Engagement Sync
 
@@ -94,7 +101,7 @@ Phase 4 closes the operating loop:
 2. Admin selects a client.
 3. System shows the client's covered criteria and open criteria gaps.
 4. System shows ranked client-ready recommendations.
-5. Admin can open a Discover evidence export JSON for any export-ready recommendation.
+5. Admin can open a SETU Discover Opportunity Studio evidence export JSON for any export-ready recommendation.
 
 ### Phase 4 Curator Proposal
 
