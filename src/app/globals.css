@@ -650,14 +650,6 @@ button {
   grid-template-columns: minmax(260px, 1.35fr) 132px 74px 96px 112px 72px;
 }
 
-.phase4-match-grid {
-  grid-template-columns: minmax(260px, 1.4fr) 84px 88px minmax(180px, 0.9fr) 108px;
-}
-
-.curator-grid {
-  grid-template-columns: minmax(280px, 1.25fr) 170px 76px minmax(240px, 1fr) 126px;
-}
-
 .muted {
   color: var(--text-2);
 }
@@ -857,89 +849,8 @@ button {
   min-width: 840px;
 }
 
-.phase4-capabilities {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.mini-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  min-height: 74px;
-  padding: 12px;
-  border: 0.5px solid var(--border-2);
-  border-radius: var(--radius);
-  background: var(--paper);
-  color: var(--text-2);
-  font-size: 12.5px;
-  line-height: 1.35;
-}
-
-.mini-card svg {
-  flex: 0 0 auto;
-  color: var(--amber);
-}
-
-.phase4-panel {
-  padding: 16px;
-}
-
 .compact-banner {
   margin-bottom: 14px;
-}
-
-.coverage-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.coverage-tile {
-  display: grid;
-  gap: 8px;
-  min-height: 74px;
-  padding: 12px;
-  border: 0.5px solid var(--border-2);
-  border-radius: var(--radius);
-  background: var(--paper-3);
-}
-
-.coverage-tile span {
-  color: var(--text-2);
-  font-size: 12px;
-}
-
-.coverage-tile strong {
-  width: fit-content;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.coverage-tile.covered strong {
-  background: var(--success-bg);
-  color: var(--success-text);
-}
-
-.coverage-tile.gap strong {
-  background: var(--warn-bg);
-  color: var(--warn-text);
-}
-
-.phase4-next {
-  margin-top: 14px;
-  padding: 12px;
-  border-top: 0.5px solid var(--border-2);
-  color: var(--text-2);
-}
-
-.phase4-export {
-  margin: 12px 16px 14px;
-  justify-content: center;
 }
 
 .match-panel {
@@ -1318,11 +1229,6 @@ button {
     grid-template-columns: 1fr;
   }
 
-  .phase4-capabilities,
-  .coverage-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .match-breakdown-strip {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1385,8 +1291,6 @@ button {
   .source-grid,
   .source-page-grid,
   .dashboard-opportunity-grid,
-  .phase4-match-grid,
-  .curator-grid,
   .run-grid,
   .ingestion-item-grid,
   .review-grid,
@@ -1428,11 +1332,6 @@ button {
 
   .match-breakdown-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .phase4-capabilities,
-  .coverage-grid {
-    grid-template-columns: 1fr;
   }
 
   .send-action {

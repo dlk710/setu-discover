@@ -42,9 +42,9 @@ New or unmatched clients remain `unknown` and are not pushable.
 
 | Status | Finance portal significance | Discover portal behavior |
 | --- | --- | --- |
-| `active` | Customer is currently eligible under Finance-owned engagement rules. Finance owns the threshold and calculation. | Pushable only when `engagement_as_of` is present and less than 24 hours old. Match lists, emails, recommendations, and exports are allowed only in this fresh active state. |
-| `dormant` | Customer exists in Finance but is not currently active for new outreach. | Not pushable. Admins can view the client profile and badge, but new opportunity sends and client-facing recommendations are blocked. |
-| `inactive` | Customer is not eligible for current engagement activity. | Not pushable. Discover hides new recommendations and blocks email pushes and evidence exports. |
+| `active` | Customer is currently eligible under Finance-owned engagement rules. Finance owns the threshold and calculation. | Pushable only when `engagement_as_of` is present and less than 24 hours old. Match lists and emails are allowed only in this fresh active state. |
+| `dormant` | Customer exists in Finance but is not currently active for new outreach. | Not pushable. Admins can view the client profile and badge, but new opportunity sends are blocked. |
+| `inactive` | Customer is not eligible for current engagement activity. | Not pushable. Discover hides new match recommendations and blocks email pushes. |
 | `unknown` | No confirmed Finance status has reached Discover yet. This is the Discover default for new, unmatched, or unsynced clients. | Not pushable. A Finance sync or verified webhook must update the client to fresh `active` before any opportunity push is allowed. |
 
 Discover does not compute Finance status and does not read amount, invoice, payment, balance, or threshold fields.
@@ -88,8 +88,6 @@ Guarded surfaces:
 - Match list API: `GET /api/matches`
 - Email push API: `POST /api/email/send`
 - Phase 2 recommendation recompute
-- Phase 4 client portal preview
-- Evidence export endpoints
 
 ## Optional Webhook
 

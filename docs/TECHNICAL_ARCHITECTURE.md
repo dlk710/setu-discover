@@ -8,7 +8,7 @@
 - `pg` for database access
 - Nodemailer for SMTP email
 - OpenAI Responses API optional for structured extraction
-- Local deterministic semantic scoring for Phase 4 hybrid matching
+- Local deterministic semantic scoring for Match & Send
 - Docker Compose for local app/database hosting
 
 ## Local Services
@@ -134,38 +134,9 @@ npm run phase2:run
 
 The Discovery agent runner is intentionally not shipped in the current product. The codebase has no LangGraph dependency, no `src/lib/phase3-agent.ts`, no `POST /api/agent/run` route, and no `phase3:run` npm script. Daily Refresh remains the supported automated source ingestion path.
 
-## Phase 4 Intelligence
+## Removed Intelligence Surface
 
-Main module:
-
-```text
-src/lib/phase4-intelligence.ts
-```
-
-Supporting data:
-
-```text
-data/curator-candidates.json
-```
-
-Primary functions:
-
-- `buildClientPortalSummary()`
-- `buildCuratorProposals()`
-- `buildEvidenceExport()`
-
-Routes:
-
-```text
-GET /api/phase4?clientId=<client-id>
-GET /api/exports/evidence?clientId=<client-id>&eventId=<event-id>
-```
-
-The Phase 4 route returns client portal preview data, curator proposals, and capability labels. The Evidence export route returns a JSON evidence packet for a valid client/opportunity pair.
-
-Client portal recommendations and evidence exports are blocked for dormant, inactive, unknown, or stale clients.
-
-The customer-facing experience is currently rendered as an authenticated admin preview at `/intelligence`. A separate public customer auth layer, customer route namespace, and externally shareable customer URLs are not part of the current release.
+The current product does not ship the Intelligence section. The codebase has no `src/lib/phase4-intelligence.ts`, no `data/curator-candidates.json`, no `GET /api/phase4` route, and no evidence export routes. Hybrid semantic scoring remains in Match & Send through `src/lib/matching.ts`.
 
 ## Hybrid Matching
 
@@ -200,18 +171,6 @@ Supported statuses:
 - `approved`: upserts a reviewed opportunity payload into `events`.
 - `rejected`: closes item and archives linked event if one exists.
 - `open`: reopens item.
-
-## Evidence Export Shape
-
-The export packet contains:
-
-- `client`
-- `opportunity`
-- `kazarian_mapping`
-- `ranking_evidence`
-- `operating_next_steps`
-
-The packet is not a petition filing. It is a structured bridge from discovery operations into downstream evidence workflows after the client completes an opportunity.
 
 ## Environment Variables
 

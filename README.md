@@ -1,6 +1,6 @@
 # SETU Discover Opportunity Studio
 
-Local SETU Discover Opportunity Studio for operating opportunity inventory, client profiles, canonical source ingestion, hybrid matching, client portal preview, evidence export, and email-out logging.
+Local SETU Discover Opportunity Studio for operating opportunity inventory, client profiles, canonical source ingestion, hybrid matching, and email-out logging.
 
 ## Run locally with Docker
 
@@ -15,7 +15,6 @@ Section URLs update as admins move through the portal, so browser back/forward w
 - `/inventory`
 - `/clients`
 - `/match-send`
-- `/intelligence`
 - `/email-log`
 - `/source-registry`
 - `/daily-refresh`
@@ -65,18 +64,13 @@ npm run phase2:schedule
 
 The master EB-1A source list is normalized into `data/source-registry.json` from the provided workbook. `npm run db:setup` imports those 45 sources into PostgreSQL and archives the older local fixture opportunities. Refreshed records are not saved to active inventory unless they include a public, reachable client-facing source/apply link on the registry source domain.
 
-## Phase 4 product finish
+## Current product finish
 
-Phase 4 adds the intelligence and scale layer:
-
-- Hybrid heuristic plus semantic matching.
-- Internal client portal preview for criteria coverage and ranked recommendations.
-- Curator proposals for new source registry additions.
-- SETU Discover Opportunity Studio evidence export JSON for client/opportunity packets.
+- Hybrid heuristic plus semantic matching in Match & Send.
 - Vetted standing opportunities from the EB-1A master registry so active inventory contains real client-action paths, not fake fixtures.
 - Inventory added-date visibility so the team can scan when each opportunity entered the active record set.
-
-Open the Phase 4 preview at `http://localhost:3004/intelligence` after admin login. This is currently an admin-side preview, not a separate public customer login portal.
+- Direct section URLs for supported admin workspaces.
+- The Intelligence section, internal client portal preview, curator proposals, and evidence export endpoints are removed from the current product.
 
 ## Finance engagement status integration
 
@@ -96,7 +90,7 @@ Run a full sync on demand:
 npm run finance:sync
 ```
 
-The Phase 2 scheduler also runs the Finance sync hourly when configured and forces a sync before the 06:00 discovery cycle. New opportunity pushes, match lists, client portal recommendations, and evidence exports fail closed unless the client is `active` with a status timestamp less than 24 hours old.
+The Phase 2 scheduler also runs the Finance sync hourly when configured and forces a sync before the 06:00 discovery cycle. New opportunity pushes and match lists fail closed unless the client is `active` with a status timestamp less than 24 hours old.
 
 ## Paused agent capability
 

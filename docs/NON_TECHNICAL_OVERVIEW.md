@@ -16,9 +16,6 @@ SETU Discover Opportunity Studio is an internal discovery workbench for finding 
 - Email relevant opportunities to clients.
 - Refresh opportunities from trusted sources.
 - Route uncertain results to a human before they become client-facing recommendations.
-- Preview what a client would see: criteria coverage, open gaps, and recommended next actions.
-- Export a structured SETU Discover Opportunity Studio evidence packet for a client/opportunity pair.
-- Review proposed new sources before they enter the trusted registry.
 - Add source applicability tags from predefined EB-1A categories.
 
 ## How The Phases Work
@@ -35,11 +32,9 @@ The system checks trusted source pages every day or on demand. It skips pages th
 
 The Discovery agent runner is currently removed from the product. The team uses Daily Refresh to check trusted source pages and the Review queue to approve uncertain results.
 
-### Phase 4
+### Removed Intelligence Section
 
-The system adds the intelligence layer: hybrid semantic matching, client portal preview, curator proposals for source expansion, and Evidence export packets. Humans still approve source additions and client communication.
-
-The client portal is currently an internal preview inside the admin Intelligence section. It is suitable for SETU team review of what a customer would see, but it is not yet a standalone public customer login portal.
+The Intelligence section is removed from the current product. The team now uses Match & Send for hybrid matching, Source Registry for trusted sources, Daily Refresh for source checks, and Review Queue for human disposition.
 
 ## Finance Status Connection
 
@@ -53,7 +48,7 @@ Status meaning:
 | --- | --- | --- |
 | Active | Customer is eligible under Finance-owned engagement rules. | Pushes are allowed only if the timestamp is fresh. |
 | Dormant | Customer is present but not currently active for new outreach. | New recommendations and sends are blocked. |
-| Inactive | Customer is not eligible for current engagement activity. | New recommendations, sends, and exports are blocked. |
+| Inactive | Customer is not eligible for current engagement activity. | New recommendations and sends are blocked. |
 | Unknown | Discover has no confirmed Finance status yet. | The client remains non-pushable until Finance confirms fresh active status. |
 
 ## What Humans Still Control
@@ -64,12 +59,10 @@ Status meaning:
 - Finance owns whether a client is active, dormant, or inactive.
 - Source credibility tiers and source status.
 - Final client communication.
-- Whether a curator proposal becomes a trusted source.
-- Whether a Evidence export is used downstream in a petition workflow.
 
 ## What AI Does
 
-AI is optional and scoped. Phase 2 can use OpenAI structured extraction when changed source content needs parsing. Phase 4 semantic matching is deterministic and local by default. AI does not control login, CRUD, source allowlists, source approval, review approval, Evidence export usage, or email sending.
+AI is optional and scoped. Phase 2 can use OpenAI structured extraction when changed source content needs parsing. Match & Send semantic scoring is deterministic and local by default. AI does not control login, CRUD, source allowlists, source approval, review approval, or email sending.
 
 ## Review Queue Meaning
 

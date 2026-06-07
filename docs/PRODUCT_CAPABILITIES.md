@@ -2,7 +2,7 @@
 
 ## What The Product Can Do Now
 
-SETU Discover Opportunity Studio is a local-first operating system for finding, qualifying, matching, sending, and exporting EB-1A profile-building opportunities.
+SETU Discover Opportunity Studio is a local-first operating system for finding, qualifying, matching, and sending EB-1A profile-building opportunities.
 
 ## Core Operating Capabilities
 
@@ -24,7 +24,7 @@ SETU Discover Opportunity Studio is a local-first operating system for finding, 
 - Search active opportunities in Match & Send and manually push a chosen opportunity through the same gated email workflow.
 - Archive stale or unsuitable opportunities.
 
-## Phase 4 Intelligence Capabilities
+## Matching Capabilities
 
 - Hybrid matching combines:
   - criteria gap fit
@@ -33,27 +33,8 @@ SETU Discover Opportunity Studio is a local-first operating system for finding, 
   - semantic text similarity
   - actionability
   - location fit
-- Client portal preview shows:
-  - target criteria
-  - covered criteria
-  - open gaps
-  - ranked client-ready recommendations
-  - next best action
-- Client recommendations are hidden when the client is dormant, inactive, unknown, or stale.
-- The current customer portal experience is an internal admin preview in `/intelligence`; a standalone public customer login portal is not shipped yet.
-- Evidence export creates a JSON evidence packet with:
-  - client profile details
-  - opportunity details
-  - source and apply links
-  - Kazarian criteria tags
-  - match score evidence
-  - operating next steps
-- Curator proposals recommend new canonical sources based on:
-  - active client demand
-  - open criteria gaps
-  - missing active inventory categories
-  - source credibility tier
-- Admins can add a curator proposal into the source registry for future refreshes.
+- Match recommendations are hidden when the client is dormant, inactive, unknown, or stale.
+- Admins can manually search opportunities and send a selected opportunity through the same Finance-gated email workflow.
 
 ## Source And Opportunity Policy
 
@@ -67,7 +48,7 @@ SETU Discover Opportunity Studio is a local-first operating system for finding, 
 ## What AI Does
 
 - OpenAI extraction is optional for changed source content.
-- Phase 4 matching uses local deterministic semantic scoring, not external embeddings by default.
+- Match & Send uses local deterministic semantic scoring, not external embeddings by default.
 - AI does not automatically send emails, approve sources, approve review items, or bypass domain guardrails.
 - AI and matching cannot bypass the Finance engagement gate.
 
@@ -86,19 +67,18 @@ SETU Discover Opportunity Studio is a local-first operating system for finding, 
 - Source credibility and refresh status.
 - Review queue approvals and rejections.
 - Client communication.
-- Curator proposal approval.
-- Final evidence use inside downstream evidence records.
 
 ## Paused Capability
 
 - The Discovery agent runner is removed from the current product.
 - There is no Run Agent button, agent tab, `/api/agent/run` endpoint, `phase3:run` script, or LangGraph dependency.
 - Daily Refresh remains the supported automated source refresh path.
+- The Intelligence section is removed from the current product.
+- There is no Intelligence tab, `/api/phase4` endpoint, evidence export endpoint, curator proposal workspace, or client portal preview.
 
 ## Local Review Entry Points
 
 - App: `http://localhost:3004`
-- Client portal preview: `http://localhost:3004/intelligence`
 - Admin: `admin@discover.local`
 - Password: `discover123`
 - GitHub: `https://github.com/dlk710/setu-discover`

@@ -59,7 +59,6 @@ const navItems = [
   { id: "inventory", label: "Inventory", icon: Award },
   { id: "clients", label: "Clients", icon: Users },
   { id: "matches", label: "Match & send", icon: Sparkles },
-  { id: "phase4", label: "Intelligence", icon: FileText },
   { id: "emails", label: "Email log", icon: Mail },
   { id: "sources", label: "Source registry", icon: ShieldCheck },
   { id: "ingestion", label: "Daily refresh", icon: RefreshCw },
@@ -77,7 +76,6 @@ const tabPathById: Record<TabId, string> = {
   inventory: "/inventory",
   clients: "/clients",
   matches: "/match-send",
-  phase4: "/intelligence",
   emails: "/email-log",
   sources: "/source-registry",
   ingestion: "/daily-refresh",
@@ -91,8 +89,6 @@ const tabIdByPath: Record<string, TabId> = {
   "/clients": "clients",
   "/match-send": "matches",
   "/matches": "matches",
-  "/intelligence": "phase4",
-  "/phase4": "phase4",
   "/email-log": "emails",
   "/emails": "emails",
   "/source-registry": "sources",
@@ -175,33 +171,6 @@ type SourceForm = {
   status: string;
   refresh_enabled: boolean;
   notes: string;
-};
-
-type Phase4State = {
-  portal: {
-    client: ClientRecord | null;
-    coverage: { criterion: string; status: "covered" | "gap" }[];
-    gaps: string[];
-    topMatches: MatchRecord[];
-    exportReady: boolean;
-    nextBestAction: string;
-  };
-  curatorProposals: Array<{
-    id: string;
-    name: string;
-    organization: string;
-    source_category: string;
-    criteria_tags: string[];
-    typical_fee: string;
-    canonical_domain: string;
-    seed_url: string;
-    credibility_tier: number;
-    notes: string;
-    score: number;
-    reasons: string[];
-    sourcePayload: Record<string, unknown>;
-  }>;
-  capabilities: string[];
 };
 
 type PushEligibility = {
@@ -517,8 +486,6 @@ export function SetuDiscoverPortal() {
   const [selectedClientId, setSelectedClientId] = useState("");
   const [matches, setMatches] = useState<MatchRecord[]>([]);
   const [matchesEligibility, setMatchesEligibility] = useState<PushEligibility>(null);
-  const [phase4State, setPhase4State] = useState<Phase4State | null>(null);
-  const [phase4Loading, setPhase4Loading] = useState(false);
   const [matchesLoading, setMatchesLoading] = useState(false);
   const [ingestionRunning, setIngestionRunning] = useState(false);
   const [emailModal, setEmailModal] = useState<{
@@ -537,23 +504,6 @@ export function SetuDiscoverPortal() {
       setLoading(false);
     }
   };
-
-  const refreshPhase4 = useCallback(async (clientId = selectedClientId) => {
-    if (!clientId) {
-      setPhase4State(null);
-      return;
-    }
-
-    setPhase4Loading(true);
-    try {
-      const payload = await requestJson<Phase4State>(`/api/phase4?clientId=${clientId}`);
-      setPhase4State(payload);
-    } catch {
-      setPhase4State(null);
-    } finally {
-      setPhase4Loading(false);
-    }
-  }, [selectedClientId]);
 
   const clientEngagementKey = useMemo(
     () => (state?.clients ?? [])
@@ -611,11 +561,6 @@ export function SetuDiscoverPortal() {
       cancelled = true;
     };
   }, [selectedClientId, state?.events.length, clientEngagementKey]);
-
-  useEffect(() => {
-    if (activeTab !== "phase4") return;
-    void refreshPhase4();
-  }, [activeTab, selectedClientId, state?.events.length, state?.sources.length, clientEngagementKey, refreshPhase4]);
 
   const filteredEvents = useMemo(() => {
     const query = inventorySearch.trim().toLowerCase();
@@ -798,26 +743,6 @@ export function SetuDiscoverPortal() {
               loading={matchesLoading}
               onSelectClient={setSelectedClientId}
               onCompose={(match, client) => setEmailModal({ match, client })}
-            />
-          ) : null}
-
-          {activeTab === "phase4" ? (
-            <Phase4View
-              clients={state.clients}
-              selectedClientId={selectedClientId}
-              phase4={phase4State}
-              loading={phase4Loading}
-              onSelectClient={setSelectedClientId}
-              onRefresh={() => refreshPhase4()}
-              onAddProposal={async (proposal) => {
-                await requestJson("/api/sources", {
-                  method: "POST",
-                  body: JSON.stringify(proposal.sourcePayload),
-                });
-                await refresh();
-                await refreshPhase4();
-                showToast("Curator proposal added to sources");
-              }}
             />
           ) : null}
 
@@ -1696,228 +1621,6 @@ function BreakdownItem({ label, value }: { label: string; value: number }) {
       <div className="breakdown-label">{label}</div>
       <div className="breakdown-value">{value}</div>
     </div>
-  );
-}
-
-function Phase4View({
-  clients,
-  selectedClientId,
-  phase4,
-  loading,
-  onSelectClient,
-  onRefresh,
-  onAddProposal,
-}: {
-  clients: ClientRecord[];
-  selectedClientId: string;
-  phase4: Phase4State | null;
-  loading: boolean;
-  onSelectClient: (clientId: string) => void;
-  onRefresh: () => void;
-  onAddProposal: (proposal: Phase4State["curatorProposals"][number]) => Promise<void>;
-}) {
-  const portal = phase4?.portal;
-  const exportMatch = portal?.topMatches.find((match) => match.event.apply_url && match.event.source_url);
-
-  return (
-    <>
-      <section className="section">
-        <div className="section-head">
-          <h2>Studio intelligence</h2>
-          <button className="btn btn-ghost" type="button" onClick={onRefresh} disabled={loading}>
-            <RefreshCw size={15} />
-            Refresh
-          </button>
-        </div>
-        <div className="toolbar">
-          <select className="search-input" value={selectedClientId} onChange={(event) => onSelectClient(event.target.value)}>
-            {clients.map((client) => (
-              <option key={client.id} value={client.id}>{client.name}</option>
-            ))}
-          </select>
-          <span className="chip">
-            <Sparkles size={14} />
-            Hybrid semantic ranking
-          </span>
-          <span className="chip">
-            <FileText size={14} />
-            Evidence export
-          </span>
-        </div>
-        <div className="phase4-capabilities">
-          {(phase4?.capabilities ?? [
-            "Hybrid heuristic plus semantic opportunity matching",
-            "Client-facing criteria coverage preview",
-            "Human-reviewed source curator proposals",
-          ]).map((capability) => (
-            <div className="mini-card" key={capability}>
-              <CheckCircle2 size={15} />
-              <span>{capability}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="dashboard-grid">
-        <section className="section">
-          <div className="section-head">
-            <h2>Client portal preview</h2>
-            <span className="chip">{portal?.client?.name ?? "No client"}</span>
-          </div>
-          <div className="card phase4-panel">
-            {loading ? <div className="empty">Loading studio intelligence...</div> : null}
-            {!loading && portal?.client ? (
-              <>
-                <div className="detail-banner compact-banner">
-                  <div>
-                    <div className="card-label">Criteria coverage</div>
-                    <h2>{portal.client.name}</h2>
-                    <div className="sub">{portal.client.field} · {portal.client.location}</div>
-                  </div>
-                  <div className="banner-actions">
-                    <EngagementBadge client={portal.client} showAsOf />
-                    <span className="chip">{portal.gaps.length} open gaps</span>
-                  </div>
-                </div>
-                <div className="coverage-grid">
-                  {portal.coverage.map((item) => (
-                    <div className={`coverage-tile ${item.status}`} key={item.criterion}>
-                      <span>{item.criterion}</span>
-                      <strong>{item.status}</strong>
-                    </div>
-                  ))}
-                </div>
-                <div className="phase4-next">{portal.nextBestAction}</div>
-              </>
-            ) : null}
-            {!loading && !portal?.client ? <div className="empty">Add a client profile to preview the client portal.</div> : null}
-          </div>
-        </section>
-
-        <section className="section">
-          <div className="section-head">
-            <h2>Evidence export</h2>
-            <span className={`pill ${portal?.exportReady ? "success" : "warn"}`}>
-              {portal?.exportReady ? "ready" : "waiting"}
-            </span>
-          </div>
-          <div className="card health-card">
-            <HealthRow
-              label="Export packet"
-              value={exportMatch ? "available" : "none"}
-              note={exportMatch ? exportMatch.event.title : "Needs a verified active opportunity with source and apply links"}
-            />
-            <HealthRow
-              label="Taxonomy"
-              value={portal?.gaps.length ? `${portal.gaps.length} gaps` : "covered"}
-              note="Kazarian criteria tags carried into the evidence packet"
-            />
-            <HealthRow
-              label="Ranking"
-              value={exportMatch ? String(exportMatch.score) : "n/a"}
-              note="Hybrid match score is included in the export JSON"
-            />
-            {exportMatch && portal?.client ? (
-              <a
-                className="btn btn-primary phase4-export"
-                href={`/api/exports/evidence?clientId=${portal.client.id}&eventId=${exportMatch.event.id}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <ArrowUpRight size={15} />
-                Export evidence JSON
-              </a>
-            ) : (
-              <button className="btn btn-primary phase4-export" type="button" disabled>
-                <FileText size={15} />
-                Export evidence JSON
-              </button>
-            )}
-          </div>
-        </section>
-      </div>
-
-      <section className="section">
-        <div className="section-head">
-          <h2>Client-ready recommendations</h2>
-          <span className="chip">{portal?.topMatches.length ?? 0} ranked</span>
-        </div>
-        <div className="card sheet-wrap">
-          <div className="sheet">
-            <div className="trow head phase4-match-grid">
-              <span>Opportunity</span>
-              <span>Score</span>
-              <span>Semantic</span>
-              <span>Gap fit</span>
-              <span>Export</span>
-            </div>
-            {portal?.topMatches.map((match) => (
-              <div className="trow phase4-match-grid" key={match.event.id}>
-                <div>
-                  <div className="cust">{match.event.title}</div>
-                  <div className="sub">{match.event.summary}</div>
-                </div>
-                <span className="score">{match.score}</span>
-                <span className="mono">{match.breakdown.semantic}</span>
-                <span className="sub">{match.breakdown.missingCriteria.join(", ") || "General profile fit"}</span>
-                {portal.client ? (
-                  <a
-                    className="btn btn-link"
-                    href={`/api/exports/evidence?clientId=${portal.client.id}&eventId=${match.event.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <ArrowUpRight size={15} />
-                    Export
-                  </a>
-                ) : (
-                  <span />
-                )}
-              </div>
-            ))}
-            {!loading && !portal?.topMatches.length ? <div className="empty">No verified active opportunities are ready for this client yet.</div> : null}
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="section-head">
-          <h2>Curator proposals</h2>
-          <span className="chip">{phase4?.curatorProposals.length ?? 0} proposals</span>
-        </div>
-        <div className="card sheet-wrap">
-          <div className="sheet">
-            <div className="trow head curator-grid">
-              <span>Source</span>
-              <span>Category</span>
-              <span>Score</span>
-              <span>Why now</span>
-              <span>Action</span>
-            </div>
-            {phase4?.curatorProposals.map((proposal) => (
-              <div className="trow curator-grid" key={proposal.id}>
-                <div>
-                  <div className="cust">{proposal.name}</div>
-                  <div className="sub">{proposal.organization} · {proposal.canonical_domain}</div>
-                  <a className="inline-link" href={proposal.seed_url} target="_blank" rel="noreferrer">
-                    <LinkIcon size={13} />
-                    Review source
-                  </a>
-                </div>
-                <span className="pill ink">{proposal.source_category}</span>
-                <span className="score">{proposal.score}</span>
-                <span className="sub">{proposal.reasons.join(", ")}</span>
-                <button className="btn btn-primary" type="button" onClick={() => void onAddProposal(proposal)}>
-                  <Plus size={15} />
-                  Add source
-                </button>
-              </div>
-            ))}
-            {!loading && !phase4?.curatorProposals.length ? <div className="empty">No new source proposals right now.</div> : null}
-          </div>
-        </div>
-      </section>
-    </>
   );
 }
 
@@ -2825,7 +2528,6 @@ function topbarTitle(tab: TabId) {
     inventory: "Inventory table",
     clients: "Client profile database",
     matches: "Match & send",
-    phase4: "Studio intelligence",
     emails: "Email history",
     sources: "Source registry",
     ingestion: "Daily refresh",
@@ -2839,7 +2541,6 @@ function topbarSubtitle(tab: TabId) {
     inventory: "All eight categories, fee visibility, tiers, status, and links.",
     clients: "Target criteria, covered criteria, keywords, field, and location.",
     matches: "Criterion gap, credibility, keyword fit, semantic fit, actionability, and location.",
-    phase4: "Hybrid matching, client portal preview, curator proposals, and evidence export.",
     emails: "Outbound attempts logged against the client record.",
     sources: "Canonical domains, seed pages, refresh status, and source-page change tracking.",
     ingestion: "Guarded fetch, change detection, structured extraction, review flags, and match refresh.",

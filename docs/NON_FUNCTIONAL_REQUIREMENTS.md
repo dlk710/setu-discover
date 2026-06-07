@@ -12,7 +12,6 @@
 
 - Phase 2 skips unchanged pages using content hashes.
 - Sources that return zero candidates create alerts for likely layout changes.
-- Phase 4 Evidence exports are generated on demand from current database state, avoiding stale packet storage.
 
 ## Safety and Guardrails
 
@@ -20,8 +19,6 @@
 - Local fixture URLs are allowed only under `/phase2-fixtures/` for review/demo use.
 - Denylisted domains are blocked.
 - Pay-to-play concerns are routed to human review when fees and low credibility tiers indicate risk.
-- Curator proposals do not enter the trusted source registry until an admin adds them.
-- Evidence export is a structured evidence packet, not an automatic petition filing.
 - Customer engagement gating fails closed: missing, unknown, dormant, inactive, or stale status blocks pushes.
 - Finance grace thresholds are not computed in Discover; Discover consumes only the Finance-owned flag.
 
@@ -39,7 +36,7 @@
 ## Performance
 
 - Phase 2 avoids repeated LLM/model work on unchanged pages.
-- Phase 4 semantic scoring is local and deterministic by default.
+- Match & Send semantic scoring is local and deterministic by default.
 - Match recomputation is scoped to top ranked opportunities per client.
 - Current scale target is local/team usage with curated source registry size.
 
@@ -47,7 +44,7 @@
 
 - Phase 2 exposes ingestion run history and extraction item reports.
 - Review queue count is visible in navigation.
-- Phase 4 exposes proposal reasons, match score breakdowns, and export readiness.
+- Match & Send exposes match score breakdowns.
 - Finance sync writes received/matched counts and errors to `integration_sync_log`.
 - Admin screens expose only the engagement flag and timestamp.
 
@@ -55,7 +52,7 @@
 
 - The `events` table remains the system-of-record spine.
 - Phase 2 uses guarded fetch and extraction primitives.
-- Phase 4 keeps semantic score in the match breakdown contract so future Qdrant embeddings can replace the local scorer without changing UI surfaces.
+- Match & Send keeps semantic score in the match breakdown contract so future Qdrant embeddings can replace the local scorer without changing UI surfaces.
 - UI components follow the existing Discover visual language.
 - Tables are responsive and verified for no horizontal overflow on mobile and desktop.
 

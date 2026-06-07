@@ -8,7 +8,7 @@ SETU Discover Opportunity Studio helps the SETU Discover team find, qualify, mat
 
 - Admin: manages source registry, inventory, clients, ingestion, review queue, and outbound emails.
 - Team member: reviews opportunities, matches clients, composes email outreach, and monitors runs.
-- Client: not yet a separate public login user; Phase 4 includes an internal client portal preview that shows what a client-facing experience would display.
+- Client: not a separate portal user in the current product.
 
 ## Phase Coverage
 
@@ -51,17 +51,9 @@ Phase 2 adds deterministic source ingestion:
 
 The Discovery agent runner is not part of the current product. The app does not expose a Run Agent button, agent tab, agent endpoint, or LangGraph runtime dependency. Source discovery currently runs through the Daily Refresh ingestion workflow and human review queue.
 
-### Phase 4: Intelligence And Scale
+### Removed: Intelligence Workspace
 
-Phase 4 closes the operating loop:
-
-- Hybrid matching adds deterministic semantic text similarity to the existing transparent heuristic score.
-- Phase 4 workspace shows a client portal preview with criteria coverage, open gaps, ranked recommendations, and next best action.
-- Client portal recommendations are hidden unless the client is Finance-active with fresh status.
-- Curator proposals suggest new canonical sources based on client demand, criteria gaps, source coverage, and credibility tier.
-- Admins can add a curator proposal into the source registry for refresh and monitoring.
-- Evidence export endpoint creates an evidence packet JSON for a selected client and opportunity.
-- DB setup creates vetted standing opportunities from direct-action EB-1A registry rows and keeps demo fixtures archived.
+The Intelligence section is not part of the current product. The portal does not expose an Intelligence tab, client portal preview, curator proposal workspace, evidence export endpoint, or Phase 4 API. Hybrid semantic scoring remains inside Match & Send.
 
 ## Key Workflows
 
@@ -95,28 +87,6 @@ Phase 4 closes the operating loop:
 5. Unmatched clients remain `unknown`.
 6. Sync outcome is logged in `integration_sync_log`.
 
-### Phase 4 Client Portal Preview
-
-1. Admin opens Phase 4.
-2. Admin selects a client.
-3. System shows the client's covered criteria and open criteria gaps.
-4. System shows ranked client-ready recommendations.
-5. Admin can open a SETU Discover Opportunity Studio evidence export JSON for any export-ready recommendation.
-
-### Phase 4 Curator Proposal
-
-1. Admin opens Phase 4.
-2. System scores source proposals from the candidate bank.
-3. Proposal reasons show client demand, criteria gaps, category supply gaps, and tier.
-4. Admin clicks Add source.
-5. Proposal becomes an active source registry record and source page for future refreshes.
-
-### Evidence Export
-
-1. Admin selects a client-ready opportunity.
-2. System generates a JSON packet with client profile, opportunity source/apply links, criteria tags, ranking evidence, and operating next steps.
-3. Evidence workflows can consume the packet as a structured starting point after the client completes the opportunity.
-
 ### Phase 2 Ingestion
 
 1. Admin opens Ingestion.
@@ -147,14 +117,13 @@ Phase 4 closes the operating loop:
 - No Run Agent button or Discovery agent tab is visible.
 - `/api/agent/run` is not shipped.
 - Review approval writes an opportunity into Inventory.
-- Phase 4 hybrid match score includes semantic fit.
-- Phase 4 client portal preview renders coverage, gaps, top recommendations, and export status.
-- Evidence export endpoint returns an evidence packet JSON for valid client/opportunity pairs.
+- Match & Send hybrid match score includes semantic fit.
+- No Intelligence tab or client portal preview is visible.
+- `/api/phase4`, `/api/exports/evidence`, and `/api/exports/setu` are not shipped.
 - Finance sync updates matched client engagement status by normalized email.
 - Unmatched clients remain `unknown`.
 - Dormant, inactive, unknown, or stale clients cannot receive email pushes.
 - Active clients with fresh status can receive email pushes.
 - Admin UI shows engagement status badges only, with no Finance amount/payment fields.
-- Curator proposals can be added into the source registry.
 - Setup imports 20 vetted standing opportunities and keeps old fixture records inactive.
 - Lint and production build pass.
