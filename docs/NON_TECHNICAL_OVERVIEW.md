@@ -39,6 +39,8 @@ The Discovery agent runner is currently removed from the product. The team uses 
 
 The system adds the intelligence layer: hybrid semantic matching, client portal preview, curator proposals for source expansion, and Evidence export packets. Humans still approve source additions and client communication.
 
+The client portal is currently an internal preview inside the admin Intelligence section. It is suitable for SETU team review of what a customer would see, but it is not yet a standalone public customer login portal.
+
 ## Finance Status Connection
 
 Discover reads one status flag from Setu Finance: active, dormant, inactive, or unknown. Finance owns the rule behind that flag. Discover does not see payment amounts or connect to Finance's database.

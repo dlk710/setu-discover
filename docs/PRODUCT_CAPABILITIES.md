@@ -40,6 +40,7 @@ SETU Discover Opportunity Studio is a local-first operating system for finding, 
   - ranked client-ready recommendations
   - next best action
 - Client recommendations are hidden when the client is dormant, inactive, unknown, or stale.
+- The current customer portal experience is an internal admin preview in `/intelligence`; a standalone public customer login portal is not shipped yet.
 - Evidence export creates a JSON evidence packet with:
   - client profile details
   - opportunity details
@@ -97,6 +98,7 @@ SETU Discover Opportunity Studio is a local-first operating system for finding, 
 ## Local Review Entry Points
 
 - App: `http://localhost:3004`
+- Client portal preview: `http://localhost:3004/intelligence`
 - Admin: `admin@discover.local`
 - Password: `discover123`
 - GitHub: `https://github.com/dlk710/setu-discover`

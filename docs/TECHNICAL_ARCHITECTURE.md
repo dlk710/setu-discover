@@ -165,6 +165,8 @@ The Phase 4 route returns client portal preview data, curator proposals, and cap
 
 Client portal recommendations and evidence exports are blocked for dormant, inactive, unknown, or stale clients.
 
+The customer-facing experience is currently rendered as an authenticated admin preview at `/intelligence`. A separate public customer auth layer, customer route namespace, and externally shareable customer URLs are not part of the current release.
+
 ## Hybrid Matching
 
 Main module:

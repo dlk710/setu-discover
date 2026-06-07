@@ -70,11 +70,13 @@ The master EB-1A source list is normalized into `data/source-registry.json` from
 Phase 4 adds the intelligence and scale layer:
 
 - Hybrid heuristic plus semantic matching.
-- Client portal preview for criteria coverage and ranked recommendations.
+- Internal client portal preview for criteria coverage and ranked recommendations.
 - Curator proposals for new source registry additions.
 - SETU Discover Opportunity Studio evidence export JSON for client/opportunity packets.
 - Vetted standing opportunities from the EB-1A master registry so active inventory contains real client-action paths, not fake fixtures.
 - Inventory added-date visibility so the team can scan when each opportunity entered the active record set.
+
+Open the Phase 4 preview at `http://localhost:3004/intelligence` after admin login. This is currently an admin-side preview, not a separate public customer login portal.
 
 ## Finance engagement status integration
 
@@ -102,6 +104,7 @@ The Discovery agent runner is intentionally removed from the current product. Th
 
 ## Documentation
 
+- [Release readiness handoff](docs/RELEASE_READINESS.md)
 - [Product capabilities](docs/PRODUCT_CAPABILITIES.md)
 - [Functional specification](docs/FUNCTIONAL_SPEC.md)
 - [Finance engagement integration](docs/FINANCE_ENGAGEMENT_INTEGRATION.md)
